@@ -21,6 +21,7 @@
  */
 
 #include <QGuiApplication>
+#include <QCursor>
 
 #include "preferencesmodel.h"
 

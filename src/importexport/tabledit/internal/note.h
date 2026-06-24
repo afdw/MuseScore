@@ -21,6 +21,8 @@
  */
 #pragma once
 
+#include <cstdint>
+
 namespace mu::iex::tabledit {
 enum class EffectType : int8_t {
     INVALID = -1,

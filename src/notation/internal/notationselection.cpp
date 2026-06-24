@@ -21,6 +21,7 @@
  */
 #include "notationselection.h"
 
+#include <QGuiApplication>
 #include <QMimeData>
 
 #include "engraving/dom/score.h"

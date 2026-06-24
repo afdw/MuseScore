@@ -23,6 +23,7 @@
 #pragma once
 
 #include <QObject>
+#include <QPixmap>
 #include <qqmlintegration.h>
 
 #include "async/asyncable.h"
