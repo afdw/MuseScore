@@ -23,6 +23,7 @@
 
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 
 #include "async/notifylist.h"
 

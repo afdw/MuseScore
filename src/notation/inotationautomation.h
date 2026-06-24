@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <QVariant>
+
 #include "async/notification.h"
 
 namespace mu::notation {

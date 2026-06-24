@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <QtTypes>
+
 #include "modularity/imoduleinterface.h"
 
 namespace mu::notation {
