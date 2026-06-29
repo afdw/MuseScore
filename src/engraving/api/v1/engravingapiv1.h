@@ -155,6 +155,7 @@ class EngravingApiV1 : public muse::api::ApiObject, public muse::extensions::api
     Q_PROPERTY(apiv1::Enum * ParenthesesMode READ parenthesesModeEnum CONSTANT)
     Q_PROPERTY(apiv1::Enum * RepeatPlayCountPreset READ repeatPlayCountPresetEnum CONSTANT)
     Q_PROPERTY(apiv1::Enum * MeasureNumberPlacement READ measureNumberPlacementEnum CONSTANT)
+    Q_PROPERTY(apiv1::Enum * ImageType READ imageTypeEnum CONSTANT)
     Q_PROPERTY(apiv1::Enum * SymId READ symIdEnum CONSTANT)
     Q_PROPERTY(apiv1::Enum * Cursor READ cursorEnum CONSTANT)
 
@@ -276,6 +277,7 @@ public:
     apiv1::Enum* parenthesesModeEnum() const { return api()->get_parenthesesModeEnum(); }
     apiv1::Enum* repeatPlayCountPresetEnum() const { return api()->get_repeatPlayCountPresetEnum(); }
     apiv1::Enum* measureNumberPlacementEnum() const { return api()->get_measureNumberPlacementEnum(); }
+    apiv1::Enum* imageTypeEnum() const { return api()->get_imageTypeEnum(); }
     apiv1::Enum* symIdEnum() const { return api()->get_symIdEnum(); }
     apiv1::Enum* cursorEnum() const { return api()->get_cursorEnum(); }
 

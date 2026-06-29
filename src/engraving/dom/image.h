@@ -137,3 +137,7 @@ private:
     ImageType m_imageType = ImageType::NONE;
 };
 }
+
+#ifndef NO_QT_SUPPORT
+Q_DECLARE_METATYPE(mu::engraving::ImageType)
+#endif

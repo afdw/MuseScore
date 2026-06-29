@@ -40,6 +40,7 @@
 #include "engraving/dom/timesig.h"
 #include "engraving/dom/tremolobar.h"
 #include "engraving/dom/tripletfeel.h"
+#include "engraving/dom/image.h"
 #include "engraving/types/types.h"
 #include "engraving/rendering/layoutoptions.h"
 
@@ -1753,6 +1754,18 @@ enum class InsertMode {
     AFTER  = 1,
 };
 Q_ENUM_NS(InsertMode);
+
+/** APIDOC
+ * Type of image
+ * @memberof Engraving
+ * @enum
+ */
+enum class ImageType {
+    NONE   = int(mu::engraving::ImageType::NONE),
+    RASTER = int(mu::engraving::ImageType::RASTER),
+    SVG    = int(mu::engraving::ImageType::SVG),
+};
+Q_ENUM_NS(ImageType);
 
 enum class SymId {
     noSym = int(mu::engraving::SymId::noSym),
@@ -4852,4 +4865,5 @@ Q_DECLARE_METATYPE(mu::engraving::apiv1::enums::LHTappingShowItems);
 Q_DECLARE_METATYPE(mu::engraving::apiv1::enums::ParenthesesMode);
 Q_DECLARE_METATYPE(mu::engraving::apiv1::enums::RepeatPlayCountPreset);
 Q_DECLARE_METATYPE(mu::engraving::apiv1::enums::MeasureNumberPlacement);
+Q_DECLARE_METATYPE(mu::engraving::apiv1::enums::ImageType);
 Q_DECLARE_METATYPE(mu::engraving::apiv1::enums::SymId);
