@@ -444,6 +444,8 @@ public:
     /// Contains mu::engraving::MeasureNumberPlacement enumeration values
     /// \since MuseScore 4.6
     DECLARE_API_ENUM(MeasureNumberPlacement, measureNumberPlacementEnum, mu::engraving::apiv1::enums::MeasureNumberPlacement)
+    /// \since MuseScore 5.0
+    DECLARE_API_ENUM(ImageType, imageTypeEnum, mu::engraving::apiv1::enums::ImageType)
     /// Contains mu::engraving::SymId enumeration values
     /// \since MuseScore 3.5
     DECLARE_API_ENUM(SymId, symIdEnum, mu::engraving::apiv1::enums::SymId)

@@ -145,6 +145,7 @@ Enum* PluginAPI::lHTappingShowItemsEnum = nullptr;
 Enum* PluginAPI::parenthesesModeEnum = nullptr;
 Enum* PluginAPI::repeatPlayCountPresetEnum = nullptr;
 Enum* PluginAPI::measureNumberPlacementEnum = nullptr;
+Enum* PluginAPI::imageTypeEnum = nullptr;
 Enum* PluginAPI::symIdEnum = nullptr;
 Enum* PluginAPI::cursorEnum = nullptr;
 
@@ -193,6 +194,7 @@ void PluginAPI::registerQmlTypes()
     qmlRegisterAnonymousType<Spanner>("MuseScore", 3);
     qmlRegisterAnonymousType<SpannerSegment>("MuseScore", 3);
     qmlRegisterAnonymousType<Ornament>("MuseScore", 3);
+    qmlRegisterAnonymousType<Image>("MuseScore", 3);
     qmlRegisterType<PlayEvent>("MuseScore", 3, 0, "PlayEvent");
 
     qmlRegisterAnonymousType<Fraction>("MuseScore", 3);

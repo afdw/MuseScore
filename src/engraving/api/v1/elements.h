@@ -53,6 +53,7 @@
 #include "engraving/dom/tuplet.h"
 #include "engraving/dom/tie.h"
 #include "engraving/dom/accidental.h"
+#include "engraving/dom/image.h"
 
 #include "playevent.h"
 
@@ -511,19 +512,6 @@ class EngravingItem : public apiv1::ScoreElement
     /// For layout breaks: The layout break type.
     /// One of PluginAPI::PluginAPI::LayoutBreakType values
     API_PROPERTY(layoutBreakType,         LAYOUT_BREAK)
-    /// For images attached to frames: Whether they
-    /// scale themselves to the frame's size.
-    API_PROPERTY_T(bool, autoscale,       AUTOSCALE)
-    /// For images: The size of an image.
-    API_PROPERTY(size,                    SIZE)
-
-    ///\since MuseScore 4.6
-    API_PROPERTY_T(qreal, imageHeight,    IMAGE_HEIGHT)
-    ///\since MuseScore 4.6
-    API_PROPERTY_T(qreal, imageWidth,     IMAGE_WIDTH)
-    /// For images: Whether this image is part of a frame.
-    ///\since MuseScore 4.6
-    API_PROPERTY_T(bool, imageFramed,     IMAGE_FRAMED)
 
     /// For fretboard diagram legends: The text (chord symbols) scale.
     API_PROPERTY_T(qreal, fretFrameTextScale, FRET_FRAME_TEXT_SCALE)
@@ -542,10 +530,6 @@ class EngravingItem : public apiv1::ScoreElement
 
     /// For time signatures: Their scale.
     API_PROPERTY(scale,                   SCALE)
-    /// For images: Whether the aspect ratio is locked.
-    API_PROPERTY_T(bool, lockAspectRatio, LOCK_ASPECT_RATIO)
-    /// For images: Whether their size is measured in spatiums.
-    API_PROPERTY_T(bool, sizeIsSpatium,   SIZE_IS_SPATIUM)
     /// For text based elements.
     API_PROPERTY(text,                    TEXT)
     ///\since MuseScore 4.6
@@ -2823,6 +2807,53 @@ public:
      * @since 4.7
      */
     Q_INVOKABLE void clear();
+};
+
+//---------------------------------------------------------
+//   Image
+///  \since MuseScore 5.0
+//---------------------------------------------------------
+
+class Image : public EngravingItem
+{
+    Q_OBJECT
+
+    /// Whether the image scale itself to the frame’s size.
+    API_PROPERTY_T(bool, autoscale,       AUTOSCALE)
+    /// The size of the image.
+    API_PROPERTY(size,                    SIZE)
+    /// \since MuseScore 4.6
+    API_PROPERTY_T(qreal, imageHeight,    IMAGE_HEIGHT)
+    /// \since MuseScore 4.6
+    API_PROPERTY_T(qreal, imageWidth,     IMAGE_WIDTH)
+    /// Whether this image is part of a frame.
+    /// \since MuseScore 4.6
+    API_PROPERTY_T(bool, imageFramed,     IMAGE_FRAMED)
+    /// Whether the aspect ratio is locked.
+    API_PROPERTY_T(bool, lockAspectRatio, LOCK_ASPECT_RATIO)
+    /// Whether the size is measured in spatiums.
+    API_PROPERTY_T(bool, sizeIsSpatium,   SIZE_IS_SPATIUM)
+
+    /// \since MuseScore 5.0
+    Q_PROPERTY(ImageType imageType READ imageType)
+    /// \since MuseScore 5.0
+    Q_PROPERTY(QString storePath READ storePath)
+
+public:
+    /// \cond MS_INTERNAL
+    Image(mu::engraving::Image* image, Ownership own = Ownership::PLUGIN)
+        : EngravingItem(image, own) {}
+
+    mu::engraving::Image* image() { return toImage(e); }
+    const mu::engraving::Image* image() const { return toImage(e); }
+
+    mu::engraving::ImageType imageType() { return image()->imageType(); }
+    QString storePath() { return QString::fromStdString(image()->storePath()); }
+    /// \endcond
+
+    Q_INVOKABLE bool loadFromStore(const QString& storePath) { return image()->loadFromStore(storePath.toStdString()); }
+    Q_INVOKABLE bool loadFromFile(const QString& path) { return image()->loadFromFile(path); }
+    Q_INVOKABLE bool loadFromData(const QString& suffix, const QByteArray& ba) { return image()->loadFromData(suffix.toStdString(), muse::ByteArray::fromQByteArray(ba)); }
 };
 
 #undef API_PROPERTY
