@@ -189,16 +189,16 @@ int main(int argc, char** argv)
     // All subsequent initialization steps will be executed as events in the event loop.
 
     std::shared_ptr<muse::IApplication> app;
-    QMetaObject::invokeMethod(qapp, [qapp, &app, &opt]() {
+    // QMetaObject::invokeMethod(qapp, [qapp, &app, &opt]() {
         AppFactory f;
         app = f.newApp(opt);
-        IF_ASSERT_FAILED(app) {
-            return;
-        }
-        app->showSplash();
-        QMetaObject::invokeMethod(qapp, [qapp, &app]() {
+        // IF_ASSERT_FAILED(app) {
+        //     return;
+        // }
+        // app->showSplash();
+        // QMetaObject::invokeMethod(qapp, [qapp, &app]() {
             app->setup();
-            QMetaObject::invokeMethod(qapp, [&app]() {
+            // QMetaObject::invokeMethod(qapp, [&app]() {
                 app->setupNewContext();
 
                 LOGI() << QString("SSL Info: supported: %1, build: %2, runtime: %3, active backend: %4, available backends: %5")
@@ -207,9 +207,9 @@ int main(int argc, char** argv)
                     .arg(QSslSocket::sslLibraryVersionString())
                     .arg(QSslSocket::activeBackend())
                     .arg(QSslSocket::availableBackends().join(", "));
-            }, Qt::QueuedConnection);
-        }, Qt::QueuedConnection);
-    }, Qt::QueuedConnection);
+    //         }, Qt::QueuedConnection);
+    //     }, Qt::QueuedConnection);
+    // }, Qt::QueuedConnection);
 
     // ====================================================
     // Run main loop
