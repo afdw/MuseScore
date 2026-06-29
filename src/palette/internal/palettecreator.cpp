@@ -175,7 +175,7 @@ PaletteTreePtr PaletteCreator::newMasterPaletteTree()
     tree->append(newHarpPalette());
     tree->append(newGuitarPalette());
     tree->append(newFingeringPalette());
-    tree->append(newFretboardDiagramPalette());
+    // tree->append(newFretboardDiagramPalette());
     tree->append(newAccordionPalette());
     tree->append(newBagpipeEmbellishmentPalette());
     tree->append(newHandbellsPalette());
@@ -212,7 +212,7 @@ PaletteTreePtr PaletteCreator::newDefaultPaletteTree()
     defaultPalette->append(newHarpPalette());
     defaultPalette->append(newGuitarPalette(true));
     defaultPalette->append(newFingeringPalette(true));
-    defaultPalette->append(newFretboardDiagramPalette(true));
+    // defaultPalette->append(newFretboardDiagramPalette(true));
     defaultPalette->append(newAccordionPalette());
     defaultPalette->append(newBagpipeEmbellishmentPalette());
     defaultPalette->append(newHandbellsPalette(true));
