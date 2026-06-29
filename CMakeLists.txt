@@ -251,7 +251,7 @@ add_subdirectory(src)
 ###########################################
 
 if (OS_IS_LIN)
-    include(packaging/Linux+BSD/SetupAppImagePackaging)
+    # include(packaging/Linux+BSD/SetupAppImagePackaging)
 endif(OS_IS_LIN)
 
 if (OS_IS_WIN)
