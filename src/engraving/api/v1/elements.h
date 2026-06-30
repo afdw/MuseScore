@@ -54,6 +54,7 @@
 #include "engraving/dom/tie.h"
 #include "engraving/dom/accidental.h"
 #include "engraving/dom/image.h"
+#include "engraving/dom/spacer.h"
 
 #include "playevent.h"
 
@@ -548,8 +549,6 @@ class EngravingItem : public apiv1::ScoreElement
     /// For stems: The user-added length offset.
     API_PROPERTY(userLen,                 USER_LEN)
 
-    /// For spacers: amount of space between staves.
-    API_PROPERTY(space,                   SPACE)
     /// For tempo text: The tempo
     API_PROPERTY(tempo,                   TEMPO)
     /// For tempo text: Whether the tempo follows the written value.
@@ -2854,6 +2853,34 @@ public:
     Q_INVOKABLE bool loadFromStore(const QString& storePath) { return image()->loadFromStore(storePath.toStdString()); }
     Q_INVOKABLE bool loadFromFile(const QString& path) { return image()->loadFromFile(path); }
     Q_INVOKABLE bool loadFromData(const QString& suffix, const QByteArray& ba) { return image()->loadFromData(suffix.toStdString(), muse::ByteArray::fromQByteArray(ba)); }
+};
+
+//---------------------------------------------------------
+//   Spacer
+///  \since MuseScore 5.0
+//---------------------------------------------------------
+
+class Spacer : public EngravingItem
+{
+    Q_OBJECT
+
+    /// Amount of space between staves.
+    API_PROPERTY(space, SPACE)
+
+    /// \since MuseScore 5.0
+    Q_PROPERTY(SpacerType spacerType READ spacerType WRITE setSpacerType)
+
+public:
+    /// \cond MS_INTERNAL
+    Spacer(mu::engraving::Spacer* spacer, Ownership own = Ownership::PLUGIN)
+        : EngravingItem(spacer, own) {}
+
+    mu::engraving::Spacer* spacer() { return toSpacer(e); }
+    const mu::engraving::Spacer* spacer() const { return toSpacer(e); }
+
+    mu::engraving::SpacerType spacerType() { return spacer()->spacerType(); }
+    void setSpacerType(mu::engraving::SpacerType t) { spacer()->setSpacerType(t); }
+    /// \endcond
 };
 
 #undef API_PROPERTY

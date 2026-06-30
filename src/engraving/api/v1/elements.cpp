@@ -829,6 +829,7 @@ EngravingItem* mu::engraving::apiv1::wrap(mu::engraving::EngravingItem* e, Owner
     API_WRAP(SpannerSegment)
     API_WRAP(Spanner)
     API_WRAP(Image)
+    API_WRAP(Spacer)
     return wrap<EngravingItem>(e, own);
 
 #undef API_WRAP
