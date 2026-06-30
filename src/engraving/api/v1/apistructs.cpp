@@ -28,67 +28,67 @@
 
 using namespace mu::engraving::apiv1;
 
-Fraction* Fraction::reduced() const
+Fraction Fraction::reduced() const
 {
     return wrap(fraction().reduced());
 }
 
-Fraction* Fraction::inverse() const
+Fraction Fraction::inverse() const
 {
     return wrap(fraction().inverse());
 }
 
-Fraction* Fraction::absValue() const
+Fraction Fraction::absValue() const
 {
     return wrap(fraction().absValue());
 }
 
-Fraction* Fraction::plus(Fraction* other)
+Fraction Fraction::plus(Fraction other)
 {
-    return wrap(fraction() + other->fraction());
+    return wrap(fraction() + other.fraction());
 }
 
-Fraction* Fraction::minus(Fraction* other)
+Fraction Fraction::minus(Fraction other)
 {
-    return wrap(fraction() - other->fraction());
+    return wrap(fraction() - other.fraction());
 }
 
-Fraction* Fraction::times(Fraction* other)
+Fraction Fraction::times(Fraction other)
 {
-    return wrap(fraction() * other->fraction());
+    return wrap(fraction() * other.fraction());
 }
 
-Fraction* Fraction::times(int v)
+Fraction Fraction::times(int v)
 {
     return wrap(fraction() * v);
 }
 
-Fraction* Fraction::dividedBy(Fraction* other)
+Fraction Fraction::dividedBy(Fraction other)
 {
-    return wrap(fraction() / other->fraction());
+    return wrap(fraction() / other.fraction());
 }
 
-Fraction* Fraction::dividedBy(int v)
+Fraction Fraction::dividedBy(int v)
 {
     return wrap(fraction() / v);
 }
 
-bool Fraction::greaterThan(Fraction* other)
+bool Fraction::greaterThan(Fraction other)
 {
-    return fraction() > other->fraction();
+    return fraction() > other.fraction();
 }
 
-bool Fraction::lessThan(Fraction* other)
+bool Fraction::lessThan(Fraction other)
 {
-    return fraction() < other->fraction();
+    return fraction() < other.fraction();
 }
 
-bool Fraction::equals(Fraction* other)
+bool Fraction::equals(Fraction other)
 {
-    return fraction() == other->fraction();
+    return fraction() == other.fraction();
 }
 
-bool Fraction::identical(Fraction* other)
+bool Fraction::identical(Fraction other)
 {
-    return fraction().identical(other->fraction());
+    return fraction().identical(other.fraction());
 }
