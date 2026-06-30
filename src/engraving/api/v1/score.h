@@ -469,7 +469,7 @@ public:
      * @param {Engraving.Fraction} tick Tick to search for the measure
      * @since 4.6
     */
-    Q_INVOKABLE apiv1::Measure* tick2measure(apiv1::Fraction* tick);
+    Q_INVOKABLE apiv1::Measure* tick2measure(apiv1::Fraction tick);
 
     /** APIDOC
     * The first segment of a given type in the score.
@@ -489,7 +489,7 @@ public:
     * @return {Engraving.Segment} Segment object
     * @since 4.6
     */
-    Q_INVOKABLE apiv1::Segment* findSegmentAtTick(int types, apiv1::Fraction* tick);
+    Q_INVOKABLE apiv1::Segment* findSegmentAtTick(int types, apiv1::Fraction tick);
 
     /** APIDOC
     * Add the text
@@ -531,7 +531,7 @@ public:
      * @param {Engraving.Fraction} endTick Fraction at which to end the layout
      * @since 4.6
     */
-    Q_INVOKABLE void doLayout(apiv1::Fraction* startTick, apiv1::Fraction* endTick);
+    Q_INVOKABLE void doLayout(apiv1::Fraction startTick, apiv1::Fraction endTick);
 
     /** APIDOC
      * Replaces the instrument for a given part with a new instrument.
@@ -570,7 +570,7 @@ public:
      * @param {String} name The new long instrument name.
      * @since 4.7
     */
-    Q_INVOKABLE void setInstrumentName(apiv1::Part* part, apiv1::Fraction* tick, const QString& name);
+    Q_INVOKABLE void setInstrumentName(apiv1::Part* part, apiv1::Fraction tick, const QString& name);
 
     /** APIDOC
      * Sets the abbreviated instrument name for a part at the given tick position.
@@ -580,7 +580,7 @@ public:
      * @param {String} abbreviature The new abbreviated instrument name.
      * @since 4.7
     */
-    Q_INVOKABLE void setInstrumentAbbreviature(apiv1::Part* part, apiv1::Fraction* tick, const QString& abbreviature);
+    Q_INVOKABLE void setInstrumentAbbreviature(apiv1::Part* part, apiv1::Fraction tick, const QString& abbreviature);
 
     /** APIDOC
      * Sets the staff type for a staff.
@@ -697,7 +697,7 @@ public:
      * @param {Engraving.Drumset} drumset The new Drumset to apply.
      * @since 4.7
     */
-    Q_INVOKABLE void replaceDrumset(apiv1::Part* part, apiv1::Fraction* tick, apiv1::Drumset* drumset);
+    Q_INVOKABLE void replaceDrumset(apiv1::Part* part, apiv1::Fraction tick, apiv1::Drumset* drumset);
 
     /** APIDOC
      * Inserts a part with the instrument defined by `instrumentId` at the given index.

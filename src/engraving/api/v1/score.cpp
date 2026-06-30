@@ -201,41 +201,18 @@ void Score::setPartSharpFlat(apiv1::Part* part, int sharpFlat)
     mu::engraving::EditPart::setPartSharpFlat(score(), part->part(), mu::engraving::PreferSharpFlat(sharpFlat));
 }
 
-void Score::setInstrumentName(apiv1::Part* part, apiv1::Fraction* tick, const QString& name)
+void Score::setInstrumentName(apiv1::Part* part, apiv1::Fraction tick, const QString& name)
 {
-    if (!part) {
-        LOGW("setInstrumentName: part is null");
-        return;
-    }
-    if (!tick) {
-        LOGW("setInstrumentName: tick is null");
-        return;
-    }
-
-    mu::engraving::EditPart::setInstrumentName(score(), part->part(), tick->fraction(), name);
+    mu::engraving::EditPart::setInstrumentName(score(), part->part(), tick.fraction(), name);
 }
 
-void Score::setInstrumentAbbreviature(apiv1::Part* part, apiv1::Fraction* tick, const QString& abbreviature)
+void Score::setInstrumentAbbreviature(apiv1::Part* part, apiv1::Fraction tick, const QString& abbreviature)
 {
-    if (!part) {
-        LOGW("setInstrumentAbbreviature: part is null");
-        return;
-    }
-    if (!tick) {
-        LOGW("setInstrumentAbbreviature: tick is null");
-        return;
-    }
-
-    mu::engraving::EditPart::setInstrumentAbbreviature(score(), part->part(), tick->fraction(), abbreviature);
+    mu::engraving::EditPart::setInstrumentAbbreviature(score(), part->part(), tick.fraction(), abbreviature);
 }
 
 void Score::setStaffType(apiv1::Staff* staff, int staffTypeId)
 {
-    if (!staff) {
-        LOGW("setStaffType: staff is null");
-        return;
-    }
-
     mu::engraving::EditPart::setStaffType(score(), staff->staff(), mu::engraving::StaffTypes(staffTypeId));
 }
 
@@ -383,22 +360,9 @@ bool Score::setVoiceVisible(Staff* staff, int voiceIndex, bool visible)
     return mu::engraving::EditPart::setVoiceVisible(score(), staff->staff(), voiceIndex, visible);
 }
 
-void Score::replaceDrumset(Part* part, apiv1::Fraction* tick, Drumset* drumset)
+void Score::replaceDrumset(Part* part, apiv1::Fraction tick, Drumset* drumset)
 {
-    if (!part) {
-        LOGW("replaceDrumset: part is null");
-        return;
-    }
-    if (!tick) {
-        LOGW("replaceDrumset: tick is null");
-        return;
-    }
-    if (!drumset) {
-        LOGW("replaceDrumset: drumset is null");
-        return;
-    }
-
-    mu::engraving::EditPart::replaceDrumset(score(), part->part(), tick->fraction(), *drumset->drumset());
+    mu::engraving::EditPart::replaceDrumset(score(), part->part(), tick.fraction(), *drumset->drumset());
 }
 
 void Score::insertPart(const QString& instrumentId, int index)
@@ -414,11 +378,6 @@ void Score::insertPart(const QString& instrumentId, int index)
 
 void Score::replacePart(Part* part, const QString& instrumentId)
 {
-    if (!part) {
-        LOGW("replacePart: part is null");
-        return;
-    }
-
     const InstrumentTemplate* t = searchTemplate(instrumentId);
     if (!t) {
         LOGW("replacePart: <%s> not found", qPrintable(instrumentId));
@@ -451,18 +410,18 @@ Segment* Score::firstSegment(int segmentType)
     return wrap<Segment>(score()->firstSegment(engraving::SegmentType(segmentType)), Ownership::SCORE);
 }
 
-Measure* Score::tick2measure(Fraction* f)
+Measure* Score::tick2measure(Fraction f)
 {
-    const mu::engraving::Fraction tick = f->fraction();
+    const mu::engraving::Fraction tick = f.fraction();
     if (!tick.isValid() || tick.negative()) {
         return nullptr;
     }
     return wrap<Measure>(score()->tick2measure(tick));
 }
 
-Segment* Score::findSegmentAtTick(int segmentTypes, Fraction* f)
+Segment* Score::findSegmentAtTick(int segmentTypes, Fraction f)
 {
-    const mu::engraving::Fraction tick = f->fraction();
+    const mu::engraving::Fraction tick = f.fraction();
     if (!tick.isValid() || tick.negative()) {
         return nullptr;
     }
@@ -622,9 +581,9 @@ void Score::endCmd(bool rollback)
     notation()->notationChanged().send(muse::RectF());
 }
 
-void Score::doLayout(Fraction* startTick, Fraction* endTick)
+void Score::doLayout(Fraction startTick, Fraction endTick)
 {
-    score()->doLayoutRange(startTick->fraction(), endTick->fraction());
+    score()->doLayoutRange(startTick.fraction(), endTick.fraction());
 }
 
 void Score::addRemoveSystemLocks(int interval, bool lock)

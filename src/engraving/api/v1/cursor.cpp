@@ -177,9 +177,9 @@ void Cursor::rewindToTick(int tick)
     nextInTrack();
 }
 
-void Cursor::rewindToFraction(Fraction* f)
+void Cursor::rewindToFraction(Fraction f)
 {
-    const mu::engraving::Fraction fraction = f->fraction();
+    const mu::engraving::Fraction fraction = f.fraction();
     if (!fraction.isValid() || fraction.negative()) {
         return;
     }
@@ -513,15 +513,15 @@ void Cursor::addRest()
 ///   \see \ref DurationElement.tuplet
 //---------------------------------------------------------
 
-void Cursor::addTuplet(Fraction* ratio, Fraction* duration)
+void Cursor::addTuplet(Fraction ratio, Fraction duration)
 {
     if (!segment()) {
         LOGW("Cursor::addTuplet: cursor location is undefined, use rewind() to define its location");
         return;
     }
 
-    const mu::engraving::Fraction fRatio = ratio->fraction();
-    const mu::engraving::Fraction fDuration = duration->fraction();
+    const mu::engraving::Fraction fRatio = ratio.fraction();
+    const mu::engraving::Fraction fDuration = duration.fraction();
 
     if (!fRatio.isValid() || fRatio.isZero() || fRatio.negative()
         || !fDuration.isValid() || fDuration.isZero() || fDuration.negative()) {
@@ -609,7 +609,7 @@ mu::engraving::Fraction Cursor::fraction() const
     return seg ? seg->tick() : mu::engraving::Fraction(0, 1);
 }
 
-Fraction* Cursor::qmlFraction() const
+Fraction Cursor::qmlFraction() const
 {
     return wrap(fraction());
 }

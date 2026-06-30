@@ -198,7 +198,7 @@ void PluginAPI::registerQmlTypes()
     qmlRegisterType<PlayEvent>("MuseScore", 3, 0, "PlayEvent");
 
     qmlRegisterAnonymousType<Fraction>("MuseScore", 3);
-    qRegisterMetaType<Fraction*>("Fraction*");
+    qRegisterMetaType<Fraction>("Fraction");
     qmlRegisterAnonymousType<IntervalWrapper>("MuseScore", 3);
     qRegisterMetaType<IntervalWrapper*>("IntervalWrapper*");
     qmlRegisterAnonymousType<OrnamentIntervalWrapper>("MuseScore", 3);
@@ -476,7 +476,7 @@ MsProcess* PluginAPI::newQProcess()
 ///  denominator
 //---------------------------------------------------------
 
-apiv1::Fraction* PluginAPI::fraction(int num, int den) const
+apiv1::Fraction PluginAPI::fraction(int num, int den) const
 {
     return wrap(mu::engraving::Fraction(num, den));
 }
@@ -487,7 +487,7 @@ apiv1::Fraction* PluginAPI::fraction(int num, int den) const
 /// \since MuseScore 4.6
 //---------------------------------------------------------
 
-apiv1::Fraction* PluginAPI::fractionFromTicks(int ticks) const
+apiv1::Fraction PluginAPI::fractionFromTicks(int ticks) const
 {
     return wrap(mu::engraving::Fraction::fromTicks(ticks));
 }

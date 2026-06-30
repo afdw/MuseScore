@@ -1297,11 +1297,11 @@ class EngravingItem : public apiv1::ScoreElement
     /// For the integer value, call \ref fraction.ticks
     /// \see \ref ticklength
     /// \since MuseScore 4.6
-    Q_PROPERTY(apiv1::Fraction * fraction READ tick)
+    Q_PROPERTY(apiv1::Fraction fraction READ tick)
     /// \brief Current beat of this element
     /// \returns The beat this element starts on, as a fraction.
     /// \since MuseScore 4.6
-    Q_PROPERTY(apiv1::Fraction * beat READ beat)
+    Q_PROPERTY(apiv1::Fraction beat READ beat)
 
 public:
     /// \cond MS_INTERNAL
@@ -1329,8 +1329,8 @@ public:
     /// Deprecated: same as ScoreElement::name. Left for compatibility purposes.
     Q_INVOKABLE QString _name() const { return name(); }
 
-    Fraction* tick() const;
-    Fraction* beat() const;
+    Fraction tick() const;
+    Fraction beat() const;
 };
 
 //---------------------------------------------------------
@@ -1496,17 +1496,17 @@ class DurationElement : public EngravingItem
     /// The duration is represented as a fraction of whole note length.
     /// This property can be modified for chords and rests since MuseScore 4.6
     //  prior to 4.6 this was called as API_PROPERTY_READ_ONLY(duration, DURATION).
-    Q_PROPERTY(apiv1::Fraction * duration READ ticks WRITE changeCRlen)
+    Q_PROPERTY(apiv1::Fraction duration READ ticks WRITE changeCRlen)
 
     /// Global duration of this element, taking into account ratio of
     /// parent tuplets if there are any.
     /// \since MuseScore 3.5
-    Q_PROPERTY(apiv1::Fraction * globalDuration READ globalDuration)
+    Q_PROPERTY(apiv1::Fraction globalDuration READ globalDuration)
 
     /// Actual duration of this element, taking into account ratio of
     /// parent tuplets and local time signatures if there are any.
     /// \since MuseScore 3.5
-    Q_PROPERTY(apiv1::Fraction * actualDuration READ actualDuration)
+    Q_PROPERTY(apiv1::Fraction actualDuration READ actualDuration)
 
     /// Tuplet which this element belongs to. If there is no parent tuplet, returns null.
     /// \since MuseScore 3.5
@@ -1528,10 +1528,10 @@ public:
     mu::engraving::DurationElement* durationElement() { return toDurationElement(e); }
     const mu::engraving::DurationElement* durationElement() const { return toDurationElement(e); }
 
-    Fraction* ticks() const;
-    void changeCRlen(Fraction* len);
-    Fraction* globalDuration() const;
-    Fraction* actualDuration() const;
+    Fraction ticks() const;
+    void changeCRlen(Fraction len);
+    Fraction globalDuration() const;
+    Fraction actualDuration() const;
 
     Tuplet* parentTuplet();
     Tuplet* topTuplet() { return wrap<Tuplet>(durationElement()->topTuplet(), Ownership::SCORE); }
@@ -1849,7 +1849,7 @@ class Segment : public EngravingItem
     /// For the integer value, call \ref fraction.ticks
     /// \see \ref ticklength
     /// \since MuseScore 4.6
-    Q_PROPERTY(apiv1::Fraction * fraction READ fraction)
+    Q_PROPERTY(apiv1::Fraction fraction READ fraction)
 
 public:
     /// \cond MS_INTERNAL
@@ -1860,7 +1860,7 @@ public:
     const mu::engraving::Segment* segment() const { return toSegment(e); }
 
     int tick() const { return segment()->tick().ticks(); }
-    Fraction* fraction() const;
+    Fraction fraction() const;
 
     int segmentType() const { return int(segment()->segmentType()); }
 
@@ -1895,12 +1895,12 @@ class MeasureBase : public EngravingItem
     /// \returns Tick of this measure, i.e. number of ticks from the beginning
     /// of the score to this measure, as a fraction.
     /// \see \ref ticklength
-    Q_PROPERTY(apiv1::Fraction * tick READ tick)
+    Q_PROPERTY(apiv1::Fraction tick READ tick)
     /// \brief Length of this measure in ticks.
     /// \returns Length of this measure, i.e. number of ticks from its beginning
     /// to its end, as a fraction.
     /// \see \ref ticklength
-    Q_PROPERTY(apiv1::Fraction * ticks READ ticks)
+    Q_PROPERTY(apiv1::Fraction ticks READ ticks)
     /// List of measure-related elements: layout breaks, jump/repeat markings etc.
     /// For frames (since MuseScore 4.6), also contains their text elements.
     /// \since MuseScore 3.3
@@ -1947,8 +1947,8 @@ public:
     mu::engraving::MeasureBase* measureBase() { return toMeasureBase(e); }
     const mu::engraving::MeasureBase* measureBase() const { return toMeasureBase(e); }
 
-    Fraction* tick() const;
-    Fraction* ticks() const;
+    Fraction tick() const;
+    Fraction ticks() const;
 
     Measure* prevMeasure() { return wrap<Measure>(measureBase()->prevMeasure(), Ownership::SCORE); }
     Measure* nextMeasure() { return wrap<Measure>(measureBase()->nextMeasure(), Ownership::SCORE); }
@@ -2379,28 +2379,28 @@ public:
     /// \param tick Tick location in the score, as a fraction.
     /// \see PluginAPI::PluginAPI::ClefType
     /// \since MuseScore 4.6
-    Q_INVOKABLE int clefType(apiv1::Fraction* tick);
+    Q_INVOKABLE int clefType(apiv1::Fraction tick);
     /// The current timestretch factor at a given tick in the score, i.e. the
     /// ratio of the local time signature over the global time signature.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE apiv1::Fraction* timeStretch(apiv1::Fraction* tick);
+    Q_INVOKABLE apiv1::Fraction timeStretch(apiv1::Fraction tick);
     /// The currently active time signature at a given tick in the score.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE EngravingItem* timeSig(apiv1::Fraction* tick);
+    Q_INVOKABLE EngravingItem* timeSig(apiv1::Fraction tick);
     /// The current written key at a given tick in the score, one of
     /// PluginAPI::PluginAPI::Key values.
     /// \param tick Tick location in the score, as a fraction.
     /// \see PluginAPI::PluginAPI::Key
     /// \since MuseScore 4.6
-    Q_INVOKABLE int key(apiv1::Fraction* tick);
+    Q_INVOKABLE int key(apiv1::Fraction tick);
     /// The transposition at a given tick in the score, active if the
     /// score is not in concert pitch.
     /// \param tick Tick location in the score, as a fraction.
     /// \see PluginAPI::IntervalWrapper
     /// \since MuseScore 4.6
-    Q_INVOKABLE apiv1::IntervalWrapper* transpose(apiv1::Fraction* tick);
+    Q_INVOKABLE apiv1::IntervalWrapper* transpose(apiv1::Fraction tick);
 
     /// The swing settings at a given tick.
     /// \returns An object with the following fields:
@@ -2409,7 +2409,7 @@ public:
     /// - \p isOn - whether swing is active.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE QVariantMap swing(apiv1::Fraction* tick);
+    Q_INVOKABLE QVariantMap swing(apiv1::Fraction tick);
     /// The capo settings at a given tick.
     /// \returns An object with the following fields:
     /// - \p active - whether there is a capo active.
@@ -2417,61 +2417,61 @@ public:
     /// - \p ignoredStrings - list of strings not affected by the capo.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE QVariantMap capo(apiv1::Fraction* tick);
+    Q_INVOKABLE QVariantMap capo(apiv1::Fraction tick);
 
     /// Whether the notes at a given tick are stemless
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE bool stemless(apiv1::Fraction* tick);
+    Q_INVOKABLE bool stemless(apiv1::Fraction tick);
     /// The staff height at a given tick in spatium units.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE qreal staffHeight(apiv1::Fraction* tick);
+    Q_INVOKABLE qreal staffHeight(apiv1::Fraction tick);
     // StaffType helper functions
     /// Whether the staff is a pitched staff at a given tick.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE bool isPitchedStaff(apiv1::Fraction* tick);
+    Q_INVOKABLE bool isPitchedStaff(apiv1::Fraction tick);
     /// Whether the staff is a tab staff at a given tick.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE bool isTabStaff(apiv1::Fraction* tick);
+    Q_INVOKABLE bool isTabStaff(apiv1::Fraction tick);
     /// Whether the staff is a drum staff at a given tick.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE bool isDrumStaff(apiv1::Fraction* tick);
+    Q_INVOKABLE bool isDrumStaff(apiv1::Fraction tick);
     /// The number of staff lines at a given tick.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE int lines(apiv1::Fraction* tick);
+    Q_INVOKABLE int lines(apiv1::Fraction tick);
     /// The distance between staff lines at a given tick, in spatium units.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE qreal lineDistance(apiv1::Fraction* tick);
+    Q_INVOKABLE qreal lineDistance(apiv1::Fraction tick);
     /// Whether the staff lines are invisible at a given tick.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE bool isLinesInvisible(apiv1::Fraction* tick);
+    Q_INVOKABLE bool isLinesInvisible(apiv1::Fraction tick);
     /// The middle line of this staff at a given tick.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE int middleLine(apiv1::Fraction* tick);
+    Q_INVOKABLE int middleLine(apiv1::Fraction tick);
     /// The bottom line of this staff at a given tick.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE int bottomLine(apiv1::Fraction* tick);
+    Q_INVOKABLE int bottomLine(apiv1::Fraction tick);
     /// The staff scaling at a given tick.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE qreal staffMag(apiv1::Fraction* tick);
+    Q_INVOKABLE qreal staffMag(apiv1::Fraction tick);
     /// The spatium value at a given tick.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE qreal spatium(apiv1::Fraction* tick);
+    Q_INVOKABLE qreal spatium(apiv1::Fraction tick);
     /// The pitch offset value at a given tick, determined by active ottavas.
     /// \param tick Tick location in the score, as a fraction.
     /// \since MuseScore 4.6
-    Q_INVOKABLE int pitchOffset(apiv1::Fraction* tick);
+    Q_INVOKABLE int pitchOffset(apiv1::Fraction tick);
 
     /// For staves in part scores: Whether the given voice
     /// is displayed in the score.
