@@ -126,6 +126,10 @@ public:
     /// Comparing e.g. 2/4 to 1/2 returns false.
     /// \since MuseScore 4.6
     Q_INVOKABLE bool identical(apiv1::Fraction other);
+
+    /// Same as \ref equals.
+    /// \since MuseScore 5.0
+    constexpr bool operator==(const Fraction& other) const { return fraction() == other.fraction(); }
 };
 
 //---------------------------------------------------------
