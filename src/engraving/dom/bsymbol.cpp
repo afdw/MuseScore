@@ -39,13 +39,19 @@ using namespace mu::engraving;
 
 namespace mu::engraving {
 //---------------------------------------------------------
+//   propertyList
+//---------------------------------------------------------
+
+static Align defaultAlign = { AlignH::LEFT, AlignV::BASELINE };
+
+//---------------------------------------------------------
 //   BSymbol
 //---------------------------------------------------------
 
 BSymbol::BSymbol(const ElementType& type, EngravingItem* parent, ElementFlags f)
     : EngravingItem(type, parent, f)
 {
-    m_align = { AlignH::LEFT, AlignV::BASELINE };
+    m_align = defaultAlign;
 }
 
 BSymbol::BSymbol(const BSymbol& s)
@@ -223,6 +229,55 @@ PointF BSymbol::canvasPos() const
         return p;
     } else {
         return EngravingItem::canvasPos();
+    }
+}
+
+//---------------------------------------------------------
+//   getProperty
+//---------------------------------------------------------
+
+PropertyValue BSymbol::getProperty(Pid propertyId) const
+{
+    switch (propertyId) {
+    case Pid::ALIGN:
+        return PropertyValue::fromValue(align());
+    default:
+        return EngravingItem::getProperty(propertyId);
+    }
+}
+
+//---------------------------------------------------------
+//   setProperty
+//---------------------------------------------------------
+
+bool BSymbol::setProperty(Pid propertyId, const PropertyValue& v)
+{
+    bool rv = true;
+    score()->addRefresh(canvasBoundingRect());
+    switch (propertyId) {
+    case Pid::ALIGN:
+        setAlign(v.value<Align>());
+        break;
+    default:
+        rv = EngravingItem::setProperty(propertyId, v);
+        break;
+    }
+    setGenerated(false);
+    triggerLayout();
+    return rv;
+}
+
+//---------------------------------------------------------
+//   propertyDefault
+//---------------------------------------------------------
+
+PropertyValue BSymbol::propertyDefault(Pid id) const
+{
+    switch (id) {
+    case Pid::ALIGN:
+        return PropertyValue(defaultAlign);
+    default:
+        return EngravingItem::propertyDefault(id);
     }
 }
 }

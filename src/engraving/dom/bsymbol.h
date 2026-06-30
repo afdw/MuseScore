@@ -58,6 +58,10 @@ public:
     PointF canvasPos() const override;
     std::vector<LineF> dragAnchorLines() const override;
 
+    PropertyValue getProperty(Pid) const override;
+    bool setProperty(Pid propertyId, const PropertyValue&) override;
+    PropertyValue propertyDefault(Pid id) const override;
+
 protected:
     BSymbol(const ElementType& type, EngravingItem* parent, ElementFlags f = ElementFlag::NOTHING);
     BSymbol(const BSymbol&);
