@@ -307,6 +307,17 @@ public:
     Q_INVOKABLE void openLog(const QString& f) { api()->openLog(f); }
     Q_INVOKABLE void closeLog() { api()->closeLog(); }
 
+    Q_INVOKABLE QPoint point(int xpos, int ypos) const
+    {
+        return QPoint(xpos, ypos);
+    }
+
+    Q_INVOKABLE QSize size(int w, int h) const
+    {
+        return QSize(w, h);
+    }
+
+
     Q_INVOKABLE apiv1::Fraction fraction(int numerator, int denominator) const
     {
         return api()->fraction(numerator, denominator);
