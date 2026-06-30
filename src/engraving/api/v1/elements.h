@@ -883,7 +883,7 @@ class EngravingItem : public apiv1::ScoreElement
     /// The scale of musical symbols in text.
     ///\since MuseScore 4.6
     API_PROPERTY_T(qreal, musicalSymbolsScale, MUSICAL_SYMBOLS_SCALE)
-    /// For text-based elements: Their text alignment.
+    /// For text-based elements, symbols and images: Their alignment.
     API_PROPERTY(align,                   ALIGN)
     /// For text-based elements: Their text's vertical alignment,
     /// used in sub- or superscript.

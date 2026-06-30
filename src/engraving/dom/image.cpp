@@ -410,7 +410,7 @@ PropertyValue Image::getProperty(Pid propertyId) const
     case Pid::SIZE_IS_SPATIUM:
         return sizeIsSpatium();
     default:
-        return EngravingItem::getProperty(propertyId);
+        return BSymbol::getProperty(propertyId);
     }
 }
 
@@ -447,7 +447,7 @@ bool Image::setProperty(Pid propertyId, const PropertyValue& v)
     }
     break;
     default:
-        rv = EngravingItem::setProperty(propertyId, v);
+        rv = BSymbol::setProperty(propertyId, v);
         break;
     }
     setGenerated(false);
@@ -478,7 +478,7 @@ PropertyValue Image::propertyDefault(Pid id) const
     case Pid::SIZE_IS_SPATIUM:
         return defaultSizeIsSpatium;
     default:
-        return EngravingItem::propertyDefault(id);
+        return BSymbol::propertyDefault(id);
     }
 }
 }
