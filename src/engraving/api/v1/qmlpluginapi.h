@@ -547,6 +547,9 @@ public:
     Q_INVOKABLE void openLog(const QString&);
     Q_INVOKABLE void closeLog();
 
+    Q_INVOKABLE QPoint point(int xpos, int ypos) const;
+    Q_INVOKABLE QSize size(int w, int h) const;
+
     Q_INVOKABLE apiv1::Fraction fraction(int numerator, int denominator) const;
     Q_INVOKABLE apiv1::Fraction fractionFromTicks(int ticks) const;
 

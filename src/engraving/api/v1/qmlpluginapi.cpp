@@ -471,6 +471,16 @@ MsProcess* PluginAPI::newQProcess()
     return nullptr;
 }
 
+QPoint PluginAPI::point(int xpos, int ypos) const
+{
+    return QPoint(xpos, ypos);
+}
+
+QSize PluginAPI::size(int w, int h) const
+{
+    return QSize(w, h);
+}
+
 //---------------------------------------------------------
 //   PluginAPI::fraction
 ///  Creates a new fraction with the given numerator and
