@@ -199,6 +199,7 @@ void PluginAPI::registerQmlTypes()
 
     qmlRegisterAnonymousType<Fraction>("MuseScore", 3);
     qRegisterMetaType<Fraction>("Fraction");
+    QMetaType::registerConverter<Fraction, QString>(&Fraction::toString);
     qmlRegisterAnonymousType<IntervalWrapper>("MuseScore", 3);
     qRegisterMetaType<IntervalWrapper*>("IntervalWrapper*");
     qmlRegisterAnonymousType<OrnamentIntervalWrapper>("MuseScore", 3);
