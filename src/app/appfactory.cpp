@@ -463,6 +463,9 @@ static void addConsoleModules(std::shared_ptr<MuseScoreConsoleApp> app)
     app->addModule(new muse::audioplugins::AudioPluginsModule());
 #endif
     app->addModule(new muse::draw::DrawModule());
+#ifdef MUSE_MODULE_INTERACTIVE
+    app->addModule(new muse::interactive::InteractiveModule());
+#endif
     app->addModule(new muse::midi::MidiModule());
     app->addModule(new muse::mpe::MpeModule());
 
