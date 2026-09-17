@@ -86,6 +86,8 @@ target_sources(palette PRIVATE
 target_link_libraries(palette PRIVATE
     engraving
     Qt::Widgets
+    muse::ui_qml
+    muse::uicomponents_qml
 )
 
 if (MUE_BUILD_PALETTE_QML)

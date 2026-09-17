@@ -443,3 +443,9 @@ target_include_directories(propertiespanel_qml PRIVATE
     types
     systemlayout
 )
+
+target_link_libraries(propertiespanel_qml PRIVATE
+    Qt::Quick
+    muse::ui_qml
+    muse::uicomponents_qml
+)

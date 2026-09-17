@@ -31,3 +31,8 @@ qt_add_qml_module(project_qml
 )
 
 fixup_qml_module_dependencies(project_qml)
+
+target_link_libraries(project_qml PRIVATE
+    muse::ui_qml
+    muse::uicomponents_qml
+)

@@ -162,3 +162,28 @@ target_include_directories(appshell_qml PRIVATE
     FirstLaunchSetup
     PublishPage
 )
+
+target_link_libraries(appshell_qml PRIVATE
+    muse::ui_qml
+    muse::uicomponents_qml
+    muse::cloud_qml
+    muse::update_qml
+    muse::dockwindow_qml
+    muse::diagnostics_qml
+    muse::extensions_qml
+    muse::interactive_qml
+    muse::learn_qml
+    muse::mpe_qml
+    muse::shortcuts_qml
+    muse::toast_qml
+    muse::tours_qml
+    engraving_qml
+    propertiespanel_qml
+    instrumentsscene_qml
+    musesounds_qml
+    notationscene_qml
+    palette_qml
+    playback_qml
+    preferences_qml
+    project_qml
+)

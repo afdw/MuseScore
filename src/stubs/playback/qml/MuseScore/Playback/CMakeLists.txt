@@ -33,3 +33,8 @@ qt_add_qml_module(playback_qml
         TARGET muse_ui_qml
         TARGET muse_uicomponents_qml
 )
+
+target_link_libraries(playback_qml PRIVATE
+    muse::ui_qml
+    muse::uicomponents_qml
+)

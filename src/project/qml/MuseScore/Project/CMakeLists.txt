@@ -175,3 +175,10 @@ target_include_directories(project_qml PRIVATE
     internal/Properties
     internal/ScoresPage
 )
+
+target_link_libraries(project_qml PRIVATE
+    muse::cloud_qml
+    muse::ui_qml
+    muse::uicomponents_qml
+    notationscene_qml
+)

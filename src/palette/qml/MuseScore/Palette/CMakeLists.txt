@@ -58,3 +58,8 @@ fixup_qml_module_dependencies(palette_qml)
 
 # Necessary for the auto-generated sources
 target_include_directories(palette_qml PRIVATE internal)
+
+target_link_libraries(palette_qml PRIVATE
+    muse::ui_qml
+    muse::uicomponents_qml
+)

@@ -135,3 +135,8 @@ qt_add_qml_module(preferences_qml
 )
 
 fixup_qml_module_dependencies(preferences_qml)
+
+target_link_libraries(preferences_qml PRIVATE
+    muse::ui_qml
+    muse::uicomponents_qml
+)

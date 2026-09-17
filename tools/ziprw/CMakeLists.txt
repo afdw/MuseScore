@@ -63,5 +63,5 @@ target_include_directories(ziprw PUBLIC
 
 target_link_libraries(ziprw PRIVATE
     ${QT_LIBRARIES}
-    muse_global
+    muse::global
 )

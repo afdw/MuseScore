@@ -78,3 +78,9 @@ fixup_qml_module_dependencies(instrumentsscene_qml)
 
 # Necessary for the auto-generated sources
 target_include_directories(instrumentsscene_qml PRIVATE internal)
+
+target_link_libraries(instrumentsscene_qml PRIVATE
+    muse::ui_qml
+    muse::uicomponents_qml
+    muse::legacytreeview_qml
+)

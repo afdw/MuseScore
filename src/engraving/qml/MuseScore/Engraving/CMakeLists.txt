@@ -53,3 +53,8 @@ fixup_qml_module_dependencies(engraving_qml)
 
 # Necessary for the auto-generated sources
 target_include_directories(engraving_qml PRIVATE devtools)
+
+target_link_libraries(engraving_qml PRIVATE
+    muse::ui_qml
+    muse::uicomponents_qml
+)

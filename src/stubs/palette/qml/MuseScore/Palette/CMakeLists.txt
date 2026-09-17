@@ -31,3 +31,8 @@ qt_add_qml_module(palette_qml
 )
 
 fixup_qml_module_dependencies(palette_qml)
+
+target_link_libraries(palette_qml PRIVATE
+    muse::ui_qml
+    muse::uicomponents_qml
+)

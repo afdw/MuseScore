@@ -11,3 +11,8 @@ qt_add_qml_module(musesounds_qml
 )
 
 fixup_qml_module_dependencies(musesounds_qml)
+
+target_link_libraries(musesounds_qml PRIVATE
+    muse::ui_qml
+    muse::uicomponents_qml
+)

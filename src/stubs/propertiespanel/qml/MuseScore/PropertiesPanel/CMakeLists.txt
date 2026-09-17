@@ -31,3 +31,7 @@ qt_add_qml_module(propertiespanel_qml
 )
 
 fixup_qml_module_dependencies(propertiespanel_qml)
+
+target_link_libraries(propertiespanel_qml PRIVATE
+    muse::uicomponents_qml
+)
