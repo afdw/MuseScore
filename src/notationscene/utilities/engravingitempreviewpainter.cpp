@@ -43,7 +43,6 @@ void EngravingItemPreviewPainter::paintPreview(std::shared_ptr<engraving::render
     }
 
     Painter* painter = params.painter;
-    painter->setPen(params.color);
 
     PointF rectOrigin = params.rect.center(); // draw element at center of cell by default
     if (params.numStaffLines > 0) {

@@ -223,8 +223,8 @@ void EditModeRenderer::drawTextBase(const TextBase* item, muse::draw::Painter* p
     }
 
     if (cursor->hasSelection()) {
-        painter->setBrush(BrushStyle::NoBrush);
-        painter->setPen(item->textColor(opt));
+        painter->setBrush(item->textColor(opt));
+        painter->setNoPen();
         size_t r1 = cursor->selectLine();
         size_t r2 = cursor->row();
         size_t c1 = cursor->selectColumn();

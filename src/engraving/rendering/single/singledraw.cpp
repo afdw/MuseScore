@@ -22,6 +22,8 @@
 
 #include "singledraw.h"
 
+#include "defer.h"
+
 #include "draw/painter.h"
 #include "draw/svgrenderer.h"
 #include "draw/types/drawtypes.h"
@@ -368,21 +370,26 @@ void SingleDraw::drawItem(const EngravingItem* item, Painter* painter, const Pai
 
 void SingleDraw::draw(const Accidental* item, Painter* painter, const PaintOptions& opt)
 {
+    TRACE_DRAW_ITEM;
     IF_ASSERT_FAILED(item->ldata()) {
         return;
     }
 
-    painter->setPen(item->curColor(opt));
+    painter->setBrush(item->curColor(opt));
+    painter->setNoPen();
     for (const Accidental::LayoutData::Sym& e : item->ldata()->syms) {
         item->drawSymbol(e.sym, painter, PointF(e.x, e.y));
     }
 }
 
-void SingleDraw::draw(const ActionIcon* item, Painter* painter, const PaintOptions&)
+void SingleDraw::draw(const ActionIcon* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
+    const ActionIcon::LayoutData* ldata = item->ldata();
     painter->setFont(item->iconFont());
-    painter->drawText(PointF(), Char(item->icon()));
+    painter->setBrush(item->curColor(opt));
+    painter->setNoPen();
+    painter->drawText(ldata->bbox(), muse::draw::AlignCenter, muse::draw::TextDontClip, Char(item->icon()));
 }
 
 void SingleDraw::draw(const Ambitus* item, Painter* painter, const PaintOptions& opt)
@@ -396,11 +403,13 @@ void SingleDraw::draw(const Ambitus* item, Painter* painter, const PaintOptions&
 
     double spatium = item->spatium();
     double lw = item->lineWidth().val() * spatium;
-    painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
 
+    painter->setBrush(item->curColor(opt));
+    painter->setNoPen();
     item->drawSymbol(item->noteHead(), painter, layoutData->topPos);
     item->drawSymbol(item->noteHead(), painter, layoutData->bottomPos);
     if (item->hasLine()) {
+        painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
         painter->drawLine(layoutData->line);
     }
 }
@@ -410,15 +419,11 @@ void SingleDraw::draw(const Arpeggio* item, Painter* painter, const PaintOptions
     TRACE_DRAW_ITEM;
 
     const Arpeggio::LayoutData* ldata = item->ldata();
-    IF_ASSERT_FAILED(ldata) {
-        return;
-    }
 
     const double y1 = ldata->bbox().top();
     const double y2 = ldata->bbox().bottom();
     const double lineWidth = item->style().styleAbsolute(Sid::arpeggioLineWidth);
 
-    painter->setPen(Pen(item->curColor(opt), lineWidth, PenStyle::SolidLine, PenCapStyle::FlatCap));
     painter->save();
 
     switch (item->arpeggioType()) {
@@ -427,6 +432,8 @@ void SingleDraw::draw(const Arpeggio* item, Painter* painter, const PaintOptions
     {
         const RectF& r = ldata->symsBBox;
         painter->rotate(-90.0);
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         item->drawSymbols(ldata->symbols, painter, PointF(-r.right() - y1, -r.bottom() + r.height()));
     } break;
 
@@ -434,6 +441,8 @@ void SingleDraw::draw(const Arpeggio* item, Painter* painter, const PaintOptions
     {
         const RectF& r = ldata->symsBBox;
         painter->rotate(90.0);
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         item->drawSymbols(ldata->symbols, painter, PointF(-r.left() + y1, -r.top() - r.height()));
     } break;
 
@@ -441,8 +450,11 @@ void SingleDraw::draw(const Arpeggio* item, Painter* painter, const PaintOptions
     {
         const RectF& r = ldata->symsBBox;
         double x1 = item->spatium() * 0.5;
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         item->drawSymbol(SymId::arrowheadBlackUp, painter, PointF(x1 - r.width() * 0.5, y1 - r.top()));
         double ny1 = y1 - r.top() * 0.5;
+        painter->setPen(Pen(item->curColor(opt), lineWidth, PenStyle::SolidLine, PenCapStyle::FlatCap));
         painter->drawLine(LineF(x1, ny1, x1, y2));
     } break;
 
@@ -450,14 +462,18 @@ void SingleDraw::draw(const Arpeggio* item, Painter* painter, const PaintOptions
     {
         const RectF& r = ldata->symsBBox;
         double x1 = item->spatium() * 0.5;
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         item->drawSymbol(SymId::arrowheadBlackDown, painter, PointF(x1 - r.width() * 0.5, y2 - r.bottom()));
         double ny2 = y2 + r.top() * 0.5;
+        painter->setPen(Pen(item->curColor(opt), lineWidth, PenStyle::SolidLine, PenCapStyle::FlatCap));
         painter->drawLine(LineF(x1, y1, x1, ny2));
     } break;
 
     case ArpeggioType::BRACKET:
     {
         double w = item->style().styleS(Sid::arpeggioHookLen).val() * item->spatium();
+        painter->setPen(Pen(item->curColor(opt), lineWidth, PenStyle::SolidLine, PenCapStyle::FlatCap));
         painter->drawLine(LineF(0.0, y1, w, y1));
         painter->drawLine(LineF(0.0, y2, w, y2));
         painter->drawLine(LineF(0.0, y1 - lineWidth / 2, 0.0, y2 + lineWidth / 2));
@@ -493,9 +509,9 @@ void SingleDraw::draw(const Articulation* item, Painter* painter, const PaintOpt
 {
     TRACE_DRAW_ITEM;
 
-    painter->setPen(item->curColor(opt));
-
     if (item->textType() == ArticulationTextType::NO_TEXT) {
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         item->drawSymbol(item->symId(), painter, PointF(-0.5 * item->width(), 0.0));
     } else {
         item->text()->setColor(item->curColor(opt));
@@ -511,59 +527,41 @@ void SingleDraw::draw(const Note* item, Painter* painter, const PaintOptions& op
     }
 
     const Note::LayoutData* ldata = item->ldata();
-    auto config = item->configuration();
 
-    bool negativeFret = item->negativeFretUsed() && item->staff()->isTabStaff(item->tick());
+    const auto config = item->configuration();
+    const StaffType* staffType = item->staff() ? item->staff()->staffTypeForElement(item) : nullptr;
 
-    Color c(negativeFret && !opt.isPrinting ? config->criticalColor() : item->curColor(opt));
-    painter->setPen(c);
-    bool tablature = item->staff() && item->staff()->isTabStaff(item->chord()->tick());
+    const bool isTabStaff = staffType && staffType->isTabStaff();
+    const bool negativeFret = isTabStaff && item->negativeFretUsed();
+    const bool useCriticalColor = negativeFret && !item->deadNote() && !opt.isPrinting;
+
+    Color color = useCriticalColor ? config->criticalColor() : item->curColor(opt);
 
     // tablature
-    if (tablature) {
-        if (item->displayFret() == Note::DisplayFretOption::Hide) {
+    if (isTabStaff) {
+        if (item->displayFret() == Note::DisplayFretOption::Hide || item->shouldHideFret()) {
             return;
         }
         const Staff* st = item->staff();
         const StaffType* tab = st->staffTypeForElement(item);
-        if (item->tieBackNonPartial() && !tab->showBackTied()) {
-            if (item->chord()->measure()->system() == item->tieBack()->startNote()->chord()->measure()->system() && item->el().empty()) {
-                // fret should be hidden, so return without drawing it
-                return;
-            }
-        }
-        // draw background, if required (to hide a segment of string line or to show a fretting conflict)
-        if (!tab->linesThrough() || item->fretConflict()) {
-            double d  = item->spatium() * .1;
-            RectF bb = RectF(ldata->bbox().x() - d,
-                             tab->fretMaskY() * item->magS(),
-                             ldata->bbox().width() + 2 * d,
-                             tab->fretMaskH() * item->magS());
-            // we do not know which viewer did this draw() call
-            // so update all:
-            if (!item->score()->getViewer().empty()) {
-                for (MuseScoreView* view : item->score()->getViewer()) {
-                    view->drawBackground(painter, bb);
-                }
-            } else {
-                painter->fillRect(bb, config->noteBackgroundColor());
-            }
 
-            if (item->fretConflict() && !opt.isPrinting && item->score()->showUnprintable()) {                //on fret conflict, draw on red background
-                painter->save();
-                painter->setPen(config->criticalColor());
-                painter->setBrush(config->criticalColor());
-                painter->drawRect(bb);
-                painter->restore();
-            }
+        if (!opt.isPrinting && item->score()->showUnprintable() && (negativeFret || item->fretConflict())) { // fret conflict
+            painter->save();
+            painter->setPen(config->criticalColor());
+            painter->setBrush(config->criticalBackgroundColor());
+            painter->drawRect(ldata->bbox());
+            painter->restore();
         }
+
         Font f(tab->fretFont());
         f.setPointSizeF(f.pointSizeF() * item->magS());
         painter->setFont(f);
-        painter->setPen(c);
-        double startPosX = ldata->bbox().x();
 
-        painter->drawText(PointF(startPosX, tab->fretFontYOffset() * item->magS()), item->fretString());
+        const double startPosX = ldata->bbox().x();
+        const double yOffset = tab->fretFontYOffset();
+        painter->setBrush(color);
+        painter->setNoPen();
+        painter->drawText(PointF(startPosX, yOffset * item->magS()), item->fretString());
     }
     // NOT tablature
     else {
@@ -578,10 +576,9 @@ void SingleDraw::draw(const Note* item, Painter* painter, const PaintOptions& op
             const Instrument* in = item->part()->instrument(item->chord()->tick());
             int i = item->ppitch();
             if (i < in->minPitchP() || i > in->maxPitchP()) {
-                painter->setPen(
-                    item->selected() ? config->criticalSelectedColor() : config->criticalColor());
+                color = item->selected() ? config->criticalSelectedColor() : config->criticalColor();
             } else if (i < in->minPitchA() || i > in->maxPitchA()) {
-                painter->setPen(item->selected() ? config->warningSelectedColor() : config->warningColor());
+                color = item->selected() ? config->warningSelectedColor() : config->warningColor();
             }
         }
         // Warn if notes are unplayable based on previous harp diagram setting
@@ -589,16 +586,18 @@ void SingleDraw::draw(const Note* item, Painter* painter, const PaintOptions& op
             && !item->staff()->isDrumStaff(item->chord()->tick())) {
             HarpPedalDiagram* prevDiagram = item->part()->currentHarpDiagram(item->chord()->segment()->tick());
             if (prevDiagram && !prevDiagram->isTpcPlayable(item->tpc())) {
-                painter->setPen(item->selected() ? config->criticalSelectedColor() : config->criticalColor());
+                color = item->selected() ? config->criticalSelectedColor() : config->criticalColor();
             }
         }
         // draw blank notehead to avoid staff and ledger lines
-        if (ldata->cachedSymNull() != SymId::noSym) {
-            painter->save();
-            painter->setPen(config->noteBackgroundColor());
-            item->drawSymbol(ldata->cachedSymNull(), painter);
-            painter->restore();
+        if (ldata->cachedSymNull.value() != SymId::noSym) {
+            painter->setBrush(config->noteBackgroundColor());
+            painter->setNoPen();
+            item->drawSymbol(ldata->cachedSymNull.value(), painter);
         }
+
+        painter->setBrush(color);
+        painter->setNoPen();
         item->drawSymbol(ldata->cachedNoteheadSym.value(), painter);
     }
 }
@@ -624,13 +623,7 @@ void SingleDraw::draw(const BagpipeEmbellishment* item, Painter* painter, const 
     TRACE_DRAW_ITEM;
 
     const BagpipeEmbellishment::LayoutData* data = item->ldata();
-    IF_ASSERT_FAILED(data) {
-        return;
-    }
     const BagpipeEmbellishment::LayoutData::BeamData& dataBeam = data->beamData;
-
-    Pen pen(item->curColor(opt), data->stemLineW, PenStyle::SolidLine, PenCapStyle::FlatCap);
-    painter->setPen(pen);
 
     // draw the notes including stem, (optional) flag and (optional) ledger line
     for (const auto& p : data->notesData) {
@@ -639,19 +632,25 @@ void SingleDraw::draw(const BagpipeEmbellishment* item, Painter* painter, const 
         // Draw Grace Note
         {
             // draw head
+            painter->setBrush(item->curColor(opt));
+            painter->setNoPen();
             item->drawSymbol(data->headsym, painter, noteData.headXY);
 
             // draw stem
+            painter->setPen(Pen(item->curColor(opt), data->stemLineW, PenStyle::SolidLine, PenCapStyle::FlatCap));
             painter->drawLine(noteData.stemLine);
 
             if (data->isDrawFlag) {
                 // draw flag
+                painter->setBrush(item->curColor(opt));
+                painter->setNoPen();
                 item->drawSymbol(data->flagsym, painter, noteData.flagXY);
             }
         }
 
         // draw the ledger line for high A
         if (!noteData.ledgerLine.isNull()) {
+            painter->setPen(Pen(item->curColor(opt), data->stemLineW, PenStyle::SolidLine, PenCapStyle::FlatCap));
             painter->drawLine(noteData.ledgerLine);
         }
     }
@@ -686,22 +685,21 @@ static void drawDots(const BarLine* item, Painter* painter, double x)
     item->drawSymbol(SymId::repeatDot, painter, PointF(x, y2l));
 }
 
-static void drawTips(const BarLine* item, Painter* painter, bool reversed, double x)
+static void drawTips(const BarLine* item, const BarLine::LayoutData* data, Painter* painter, bool reversed, double x)
 {
-    const BarLine::LayoutData* ldata = item->ldata();
     if (reversed) {
         if (item->isTop()) {
-            item->drawSymbol(SymId::reversedBracketTop, painter, PointF(x - item->symWidth(SymId::reversedBracketTop), ldata->y1));
+            item->drawSymbol(SymId::reversedBracketTop, painter, PointF(x - item->symWidth(SymId::reversedBracketTop), data->y1));
         }
         if (item->isBottom()) {
-            item->drawSymbol(SymId::reversedBracketBottom, painter, PointF(x - item->symWidth(SymId::reversedBracketBottom), ldata->y2));
+            item->drawSymbol(SymId::reversedBracketBottom, painter, PointF(x - item->symWidth(SymId::reversedBracketBottom), data->y2));
         }
     } else {
         if (item->isTop()) {
-            item->drawSymbol(SymId::bracketTop, painter, PointF(x, ldata->y1));
+            item->drawSymbol(SymId::bracketTop, painter, PointF(x, data->y1));
         }
         if (item->isBottom()) {
-            item->drawSymbol(SymId::bracketBottom, painter, PointF(x, ldata->y2));
+            item->drawSymbol(SymId::bracketBottom, painter, PointF(x, data->y2));
         }
     }
 }
@@ -709,12 +707,21 @@ static void drawTips(const BarLine* item, Painter* painter, bool reversed, doubl
 void SingleDraw::draw(const BarLine* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
-    const BarLine::LayoutData* ldata = item->ldata();
+
+    const BarLine::LayoutData* data = item->ldata();
+
+    painter->save();
+    DEFER {
+        painter->restore();
+    };
+
+    setMask(item, painter);
+
     switch (item->barLineType()) {
     case BarLineType::NORMAL: {
         double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
-        painter->drawLine(LineF(lw * .5, ldata->y1, lw * .5, ldata->y2));
+        painter->drawLine(LineF(lw * .5, data->y1, lw * .5, data->y2));
     }
     break;
 
@@ -725,14 +732,14 @@ void SingleDraw::draw(const BarLine* item, Painter* painter, const PaintOptions&
         Pen pen(item->curColor(opt), lw, PenStyle::DashLine, PenCapStyle::FlatCap);
         pen.setDashPattern({ dl, gl });
         painter->setPen(pen);
-        painter->drawLine(LineF(lw * .5, ldata->y1, lw * .5, ldata->y2));
+        painter->drawLine(LineF(lw * .5, data->y1, lw * .5, data->y2));
     }
     break;
 
     case BarLineType::DOTTED: {
         double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::DotLine, PenCapStyle::FlatCap));
-        painter->drawLine(LineF(lw * .5, ldata->y1, lw * .5, ldata->y2));
+        painter->drawLine(LineF(lw * .5, data->y1, lw * .5, data->y2));
     }
     break;
 
@@ -740,12 +747,12 @@ void SingleDraw::draw(const BarLine* item, Painter* painter, const PaintOptions&
         double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
         double x  = lw * .5;
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
 
         double lw2 = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
         x += ((lw * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
     }
     break;
 
@@ -753,9 +760,9 @@ void SingleDraw::draw(const BarLine* item, Painter* painter, const PaintOptions&
         double lw = item->style().styleAbsolute(Sid::doubleBarWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
         double x = lw * .5;
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
         x += ((lw * .5) + item->style().styleAbsolute(Sid::doubleBarDistance) + (lw * .5)) * item->mag();
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
     }
     break;
 
@@ -763,19 +770,19 @@ void SingleDraw::draw(const BarLine* item, Painter* painter, const PaintOptions&
         double lw = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
         double x = lw * .5;
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
 
         double lw2 = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
         x += ((lw * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
     }
     break;
 
     case BarLineType::HEAVY: {
         double lw = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
-        painter->drawLine(LineF(lw * .5, ldata->y1, lw * .5, ldata->y2));
+        painter->drawLine(LineF(lw * .5, data->y1, lw * .5, data->y2));
     }
     break;
 
@@ -783,9 +790,9 @@ void SingleDraw::draw(const BarLine* item, Painter* painter, const PaintOptions&
         double lw2 = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
         double x = lw2 * .5;
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
         x += ((lw2 * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
     }
     break;
 
@@ -793,72 +800,88 @@ void SingleDraw::draw(const BarLine* item, Painter* painter, const PaintOptions&
         double lw2 = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
         double x = lw2 * .5;
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
 
         double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
         x += ((lw2 * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw * .5)) * item->mag();
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
 
         x += ((lw * .5) + item->style().styleAbsolute(Sid::repeatBarlineDotSeparation)) * item->mag();
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         drawDots(item, painter, x);
 
         if (item->style().styleB(Sid::repeatBarTips)) {
-            drawTips(item, painter, false, 0.0);
+            painter->setBrush(item->curColor(opt));
+            painter->setNoPen();
+            drawTips(item, data, painter, false, 0.0);
         }
     }
     break;
 
     case BarLineType::END_REPEAT: {
         double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
-        painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
 
         double x = 0.0;
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         drawDots(item, painter, x);
 
         x += item->symBbox(SymId::repeatDot).width();
         x += (item->style().styleAbsolute(Sid::repeatBarlineDotSeparation) + (lw * .5)) * item->mag();
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
 
         double lw2 = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
         x += ((lw * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
 
         if (item->style().styleB(Sid::repeatBarTips)) {
-            drawTips(item, painter, true, x + lw2 * .5);
+            painter->setBrush(item->curColor(opt));
+            painter->setNoPen();
+            drawTips(item, data, painter, true, x + lw2 * .5);
         }
     }
     break;
     case BarLineType::END_START_REPEAT: {
         double lw = item->style().styleAbsolute(Sid::barWidth) * item->mag();
-        painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
 
         double x = 0.0;
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         drawDots(item, painter, x);
 
         x += item->symBbox(SymId::repeatDot).width();
         x += (item->style().styleAbsolute(Sid::repeatBarlineDotSeparation) + (lw * .5)) * item->mag();
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
 
         double lw2 = item->style().styleAbsolute(Sid::endBarWidth) * item->mag();
         x += ((lw * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw2 * .5)) * item->mag();
         painter->setPen(Pen(item->curColor(opt), lw2, PenStyle::SolidLine, PenCapStyle::FlatCap));
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
 
         if (item->style().styleB(Sid::repeatBarTips)) {
-            drawTips(item, painter, true, x + lw2 * .5);
+            painter->setBrush(item->curColor(opt));
+            painter->setNoPen();
+            drawTips(item, data, painter, true, x + lw2 * .5);
         }
 
         painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
         x  += ((lw2 * .5) + item->style().styleAbsolute(Sid::endBarDistance) + (lw * .5)) * item->mag();
-        painter->drawLine(LineF(x, ldata->y1, x, ldata->y2));
+        painter->drawLine(LineF(x, data->y1, x, data->y2));
 
         x += ((lw * .5) + item->style().styleAbsolute(Sid::repeatBarlineDotSeparation)) * item->mag();
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         drawDots(item, painter, x);
 
         if (item->style().styleB(Sid::repeatBarTips)) {
-            drawTips(item, painter, false, 0.0);
+            painter->setBrush(item->curColor(opt));
+            painter->setNoPen();
+            drawTips(item, data, painter, false, 0.0);
         }
     }
     break;
@@ -900,19 +923,15 @@ void SingleDraw::draw(const Bend* item, Painter* painter, const PaintOptions& op
 {
     TRACE_DRAW_ITEM;
 
-    const Bend::LayoutData* ldata = item->ldata();
-    double _spatium = item->spatium();
-    double _lw = item->absoluteFromSpatium(item->lineWidth());
+    const Bend::LayoutData* data = item->ldata();
 
-    Pen pen(item->curColor(opt), _lw, PenStyle::SolidLine, PenCapStyle::RoundCap, PenJoinStyle::RoundJoin);
-    painter->setPen(pen);
-    painter->setBrush(Brush(item->curColor(opt)));
+    double spatium = item->spatium();
+    double lw = item->absoluteFromSpatium(item->lineWidth());
 
-    Font f = item->font(_spatium);
-    painter->setFont(f);
+    Font f = item->font(spatium);
 
-    double x  = ldata->noteWidth + _spatium * .2;
-    double y  = -_spatium * .8;
+    double x  = data->noteWidth + spatium * .2;
+    double y  = -spatium * .8;
     double x2, y2;
 
     double aw = item->style().styleAbsolute(Sid::bendArrowWidth);
@@ -925,15 +944,21 @@ void SingleDraw::draw(const Bend* item, Painter* painter, const PaintOptions& op
     for (size_t pt = 0; pt < n - 1; ++pt) {
         int pitch = item->points()[pt].pitch;
         if (pt == 0 && pitch) {
-            y2 = -ldata->notePos.y() - _spatium * 2;
+            y2 = -data->notePos.y() - spatium * 2;
             x2 = x;
+            painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::RoundCap, PenJoinStyle::RoundJoin));
             painter->drawLine(LineF(x, y, x2, y2));
 
+            painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::RoundCap, PenJoinStyle::RoundJoin));
             painter->setBrush(item->curColor(opt));
+            // FIXME: both fill and stroke?
             painter->drawPolygon(arrowUp.translated(x2, y2));
 
             int idx = (pitch + 12) / 25;
             const char* l = item->label[idx];
+            painter->setFont(f);
+            painter->setBrush(item->curColor(opt));
+            painter->setNoPen();
             painter->drawText(RectF(x2, y2, .0, .0),
                               muse::draw::AlignHCenter | muse::draw::AlignBottom,
                               muse::draw::TextDontClip,
@@ -945,13 +970,14 @@ void SingleDraw::draw(const Bend* item, Painter* painter, const PaintOptions& op
             if (pt == (n - 2)) {
                 break;
             }
-            x2 = x + _spatium;
+            x2 = x + spatium;
             y2 = y;
+            painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::RoundCap, PenJoinStyle::RoundJoin));
             painter->drawLine(LineF(x, y, x2, y2));
         } else if (pitch < item->points()[pt + 1].pitch) {
             // up
-            x2 = x + _spatium * .5;
-            y2 = -ldata->notePos.y() - _spatium * 2;
+            x2 = x + spatium * .5;
+            y2 = -data->notePos.y() - spatium * 2;
             double dx = x2 - x;
             double dy = y2 - y;
 
@@ -961,29 +987,37 @@ void SingleDraw::draw(const Bend* item, Painter* painter, const PaintOptions& op
             painter->setBrush(BrushStyle::NoBrush);
             painter->drawPath(path);
 
+            painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::RoundCap, PenJoinStyle::RoundJoin));
             painter->setBrush(item->curColor(opt));
+            // FIXME: both fill and stroke?
             painter->drawPolygon(arrowUp.translated(x2, y2));
 
             int idx = (item->points()[pt + 1].pitch + 12) / 25;
             const char* l = item->label[idx];
             double ty = y2;       // - _spatium;
+            painter->setFont(f);
+            painter->setBrush(item->curColor(opt));
+            painter->setNoPen();
             painter->drawText(RectF(x2, ty, .0, .0),
                               muse::draw::AlignHCenter | muse::draw::AlignBottom,
                               muse::draw::TextDontClip,
                               String::fromAscii(l));
         } else {
             // down
-            x2 = x + _spatium * .5;
-            y2 = y + _spatium * 3;
+            x2 = x + spatium * .5;
+            y2 = y + spatium * 3;
             double dx = x2 - x;
             double dy = y2 - y;
 
             PainterPath path;
             path.moveTo(x, y);
             path.cubicTo(x + dx / 2, y, x2, y + dy / 4, x2, y2);
+            painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::RoundCap, PenJoinStyle::RoundJoin));
             painter->setBrush(BrushStyle::NoBrush);
             painter->drawPath(path);
 
+            // FIXME: both fill and stroke?
+            painter->setPen(Pen(item->curColor(opt), lw, PenStyle::SolidLine, PenCapStyle::RoundCap, PenJoinStyle::RoundJoin));
             painter->setBrush(item->curColor(opt));
             painter->drawPolygon(arrowDown.translated(x2, y2));
         }
@@ -995,35 +1029,39 @@ void SingleDraw::draw(const Bend* item, Painter* painter, const PaintOptions& op
 void SingleDraw::draw(const Bracket* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
-
     const Bracket::LayoutData* ldata = item->ldata();
-
-    painter->save();
-    setMask(item, painter);
 
     switch (item->bracketType()) {
     case BracketType::BRACE: {
-        double h = ldata->bracketHeight;
-        double glyphHeight = item->symHeight(ldata->braceSymbol);
-        double mag = h / glyphHeight;
-        painter->setPen(item->curColor(opt));
-        painter->save();
-        painter->scale(item->magx(), mag);
-        item->drawSymbol(ldata->braceSymbol, painter, PointF(0, glyphHeight));
-        painter->restore();
+        if (ldata->braceSymbol == SymId::noSym) {
+            painter->setNoPen();
+            painter->setBrush(Brush(item->curColor(opt)));
+            painter->drawPath(ldata->path);
+        } else {
+            double h = ldata->bracketHeight;
+            double glyphHeight = item->symHeight(ldata->braceSymbol);
+            double mag = h / glyphHeight;
+            painter->setBrush(item->curColor(opt));
+            painter->setNoPen();
+            painter->save();
+            painter->scale(item->magx(), mag);
+            item->drawSymbol(ldata->braceSymbol, painter, PointF(0.0, glyphHeight));
+            painter->restore();
+        }
     }
     break;
     case BracketType::NORMAL: {
         double h = ldata->bracketHeight;
-        double _spatium = item->spatium();
+        double spatium = item->spatium();
         double w = item->style().styleAbsolute(Sid::bracketWidth);
-        double bd = (item->style().styleSt(Sid::musicalSymbolFont) == "Leland") ? _spatium * .5 : _spatium * .25;
-        Pen pen(item->curColor(opt), w, PenStyle::SolidLine, PenCapStyle::FlatCap);
-        painter->setPen(pen);
+        double bd = (item->style().styleSt(Sid::musicalSymbolFont) == "Leland") ? spatium * .5 : spatium * .25;
+        painter->setPen(Pen(item->curColor(opt), w, PenStyle::SolidLine, PenCapStyle::FlatCap));
         painter->drawLine(LineF(0.0, -bd - w * .5, 0.0, h + bd + w * .5));
         double x = -w * .5;
         double y1 = -bd;
         double y2 = h + bd;
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         item->drawSymbol(SymId::bracketTop, painter, PointF(x, y1));
         item->drawSymbol(SymId::bracketBottom, painter, PointF(x, y2));
     }
@@ -1051,27 +1089,36 @@ void SingleDraw::draw(const Bracket* item, Painter* painter, const PaintOptions&
     break;
     case BracketType::GROUP:
     {
+        if (!item->bracketItem()->showBracket() && (!item->score()->isShowInvisible() || opt.isPrinting)) {
+            return;
+        }
+
+        painter->save();
+        setMask(item, painter);
+
         double h = ldata->bracketHeight;
-        double lineW = item->style().styleAbsolute(Sid::staffLineWidth);
-        double bracketWidth = ldata->bracketWidth;
-        Pen pen(item->curColor(opt), lineW, PenStyle::SolidLine, PenCapStyle::FlatCap);
+        double lineW = item->style().styleAbsolute(Sid::groupBracketLineWidth);
+        double hookLen = item->style().styleAbsolute(Sid::groupBracketHookLen);
+        Color color = item->curColor(item->visible() && item->bracketItem()->showBracket(), opt);
+        Pen pen(color, lineW, PenStyle::SolidLine, PenCapStyle::FlatCap);
         painter->setPen(pen);
         painter->drawLine(LineF(0.5 * lineW, 0.0, 0.5 * lineW, h));
-        painter->drawLine(LineF(0.0, 0.0, bracketWidth, 0.0));
-        painter->drawLine(LineF(0.0, h, bracketWidth, h));
+        painter->drawLine(LineF(0.0, 0.0, hookLen, 0.0));
+        painter->drawLine(LineF(0.0, h, hookLen, h));
+
+        painter->restore();
     }
     break;
     case BracketType::NO_BRACKET:
         break;
     }
-
-    painter->restore();
 }
 
 void SingleDraw::draw(const Breath* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
-    painter->setPen(item->curColor(opt));
+    painter->setBrush(item->curColor(opt));
+    painter->setNoPen();
     item->drawSymbol(item->symId(), painter);
 }
 
@@ -1079,17 +1126,15 @@ void SingleDraw::draw(const ChordLine* item, Painter* painter, const PaintOption
 {
     TRACE_DRAW_ITEM;
     const ChordLine::LayoutData* ldata = item->ldata();
-    IF_ASSERT_FAILED(ldata) {
-        return;
-    }
 
     if (!item->isWavy()) {
         painter->setPen(Pen(item->curColor(opt), item->style().styleAbsolute(Sid::chordlineThickness) * item->mag(), PenStyle::SolidLine));
-        painter->setBrush(BrushStyle::NoBrush);
         painter->drawPath(ldata->path);
     } else {
         painter->save();
         painter->rotate((item->chordLineType() == ChordLineType::FALL ? 1 : -1));
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         item->drawSymbol(item->waveSym(), painter);
         painter->restore();
     }
@@ -1099,14 +1144,13 @@ void SingleDraw::draw(const Clef* item, Painter* painter, const PaintOptions& op
 {
     TRACE_DRAW_ITEM;
     const Clef::LayoutData* ldata = item->ldata();
-    IF_ASSERT_FAILED(ldata) {
+
+    if (ldata->symId == SymId::noSym || (item->staff() && !const_cast<const Staff*>(item->staff())->staffType(item->tick())->genClef())) {
         return;
     }
 
-    if (ldata->symId == SymId::noSym) {
-        return;
-    }
-    painter->setPen(item->curColor(opt));
+    painter->setBrush(item->curColor(opt));
+    painter->setNoPen();
     item->drawSymbol(ldata->symId, painter);
 }
 
@@ -1119,9 +1163,6 @@ void SingleDraw::draw(const DeadSlapped* item, Painter* painter, const PaintOpti
 {
     TRACE_DRAW_ITEM;
     const DeadSlapped::LayoutData* ldata = item->ldata();
-    IF_ASSERT_FAILED(ldata) {
-        return;
-    }
 
     painter->setPen(PenStyle::NoPen);
     painter->setBrush(item->curColor(opt));
@@ -1142,8 +1183,9 @@ void SingleDraw::draw(const Expression* item, Painter* painter, const PaintOptio
 void SingleDraw::draw(const Fermata* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
-    painter->setPen(item->curColor(opt));
-    item->drawSymbol(item->symId(), painter, PointF(-0.5 * item->width(), 0.0));
+    painter->setBrush(item->curColor(opt));
+    painter->setNoPen();
+    item->drawSymbol(item->symId(), painter);
 }
 
 void SingleDraw::draw(const FiguredBass* item, Painter* painter, const PaintOptions& opt)
@@ -1175,10 +1217,8 @@ void SingleDraw::draw(const FiguredBassItem* item, Painter* painter, const Paint
     f.setPointSizeF(m);
 
     painter->setFont(f);
-    painter->setBrush(BrushStyle::NoBrush);
-    Pen pen(item->figuredBass()->curColor(opt), FiguredBass::FB_CONTLINE_THICKNESS.toAbsolute(_spatium), PenStyle::SolidLine,
-            PenCapStyle::RoundCap);
-    painter->setPen(pen);
+    painter->setBrush(item->figuredBass()->curColor(opt));
+    painter->setNoPen();
     painter->drawText(ldata->bbox(),
                       muse::draw::AlignLeft | muse::draw::AlignTop,
                       muse::draw::TextDontClip,
@@ -1218,6 +1258,7 @@ void SingleDraw::draw(const FiguredBassItem* item, Painter* painter, const Paint
         // if some line, draw it
         if (lineEndX > 0.0) {
             double h = ldata->bbox().height() * FiguredBass::FB_CONTLINE_HEIGHT;
+            painter->setPen(Pen(item->figuredBass()->curColor(opt), FiguredBass::FB_CONTLINE_THICKNESS.toAbsolute(_spatium), PenStyle::SolidLine, PenCapStyle::RoundCap));
             painter->drawLine(lineStartX, h, lineEndX - ldata->pos().x(), h);
         }
     }
@@ -1225,6 +1266,8 @@ void SingleDraw::draw(const FiguredBassItem* item, Painter* painter, const Paint
     // closing cont.line parenthesis
     if (item->parenth5() != FiguredBassItem::Parenthesis::NONE) {
         int x = lineEndX > 0.0 ? lineEndX : ldata->textWidth;
+        painter->setBrush(item->figuredBass()->curColor(opt));
+        painter->setNoPen();
         painter->drawText(RectF(x, 0, ldata->bbox().width(), ldata->bbox().height()),
                           muse::draw::AlignLeft | muse::draw::AlignTop,
                           muse::draw::TextDontClip,
@@ -1249,28 +1292,23 @@ void SingleDraw::draw(const FretDiagram* item, Painter* painter, const PaintOpti
         painter->translate(translation);
     }
 
-    // Init pen and other values
-    Pen pen(item->curColor(opt));
-    pen.setCapStyle(PenCapStyle::FlatCap);
-    painter->setBrush(Brush(Color(painter->pen().color())));
-
     // x2 is the x val of the rightmost string
     double x2 = (item->strings() - 1) * ldata->stringDist;
 
     // Draw the nut
-    pen.setWidthF(ldata->nutLineWidth);
-    painter->setPen(pen);
-    painter->drawLine(LineF(-ldata->stringLineWidth * .5, 0.0, x2 + ldata->stringLineWidth * .5, 0.0));
+    painter->setPen(Pen(item->curColor(opt), ldata->nutLineWidth, PenStyle::SolidLine, PenCapStyle::FlatCap));
+    double nutY = ldata->nutY;
+    painter->drawLine(LineF(-ldata->stringLineWidth * .5, nutY, x2 + ldata->stringLineWidth * .5, nutY));
 
     // Draw strings and frets
-    pen.setWidthF(ldata->stringLineWidth);
-    painter->setPen(pen);
+    painter->setPen(Pen(item->curColor(opt), ldata->stringLineWidth, PenStyle::SolidLine, PenCapStyle::FlatCap));
 
     // y2 is the y val of the bottom fretline
-    double y2 = ldata->fretDist * item->frets();
+    double y1 = ldata->stringExtendTop;
+    double y2 = ldata->fretDist * item->frets() + 0.5 * ldata->stringLineWidth + ldata->stringExtendBottom;
     for (int i = 0; i < item->strings(); ++i) {
         double x = ldata->stringDist * i;
-        painter->drawLine(LineF(x, 0.0, x, y2));
+        painter->drawLine(LineF(x, y1, x, y2));
     }
     for (int i = 1; i <= item->frets(); ++i) {
         double y = ldata->fretDist * i;
@@ -1278,13 +1316,10 @@ void SingleDraw::draw(const FretDiagram* item, Painter* painter, const PaintOpti
     }
 
     // dotd is the diameter of a dot
-    double dotd = item->style().styleAbsolute(Sid::fretDotSpatiumSize);
+    double dotd = ldata->dotDiameter;
 
-    // Draw dots, sym pen is used to draw them (and markers)
-    Pen symPen(pen);
-    symPen.setCapStyle(PenCapStyle::RoundCap);
+    // Draw dots
     double symPenWidth = ldata->stringLineWidth * 1.2;
-    symPen.setWidthF(symPenWidth);
 
     for (auto const& i : item->dots()) {
         for (auto const& d : i.second) {
@@ -1300,28 +1335,27 @@ void SingleDraw::draw(const FretDiagram* item, Painter* painter, const PaintOpti
             double y = ldata->fretDist * fret + ldata->fretDist * .5 - dotd * .5;
 
             // Draw different symbols
-            painter->setPen(symPen);
             switch (d.dtype) {
             case FretDotType::CROSS:
                 // Give the cross a slightly larger width
-                symPen.setWidthF(symPenWidth * 1.5);
-                painter->setPen(symPen);
+                painter->setPen(Pen(item->curColor(opt), symPenWidth * 1.5, PenStyle::SolidLine, PenCapStyle::FlatCap));
                 painter->drawLine(LineF(x, y, x + dotd, y + dotd));
                 painter->drawLine(LineF(x + dotd, y, x, y + dotd));
-                symPen.setWidthF(symPenWidth);
                 break;
             case FretDotType::SQUARE:
                 painter->setBrush(BrushStyle::NoBrush);
+                painter->setPen(Pen(item->curColor(opt), symPenWidth, PenStyle::SolidLine, PenCapStyle::FlatCap));
                 painter->drawRect(RectF(x, y, dotd, dotd));
                 break;
             case FretDotType::TRIANGLE:
+                painter->setPen(Pen(item->curColor(opt), symPenWidth, PenStyle::SolidLine, PenCapStyle::FlatCap));
                 painter->drawLine(LineF(x, y + dotd, x + .5 * dotd, y));
                 painter->drawLine(LineF(x + .5 * dotd, y, x + dotd, y + dotd));
                 painter->drawLine(LineF(x + dotd, y + dotd, x, y + dotd));
                 break;
             case FretDotType::NORMAL:
             default:
-                painter->setBrush(symPen.color());
+                painter->setBrush(item->curColor(opt));
                 painter->setNoPen();
                 painter->drawEllipse(RectF(x, y, dotd, dotd));
                 break;
@@ -1330,9 +1364,8 @@ void SingleDraw::draw(const FretDiagram* item, Painter* painter, const PaintOpti
     }
 
     // Draw markers
-    symPen.setWidthF(symPenWidth * 1.2);
+    painter->setPen(Pen(item->curColor(opt), ldata->stringLineWidth * 1.2, PenStyle::SolidLine, PenCapStyle::FlatCap));
     painter->setBrush(BrushStyle::NoBrush);
-    painter->setPen(symPen);
     for (auto const& i : item->markers()) {
         int string = i.first;
         FretItem::Marker marker = i.second;
@@ -1341,7 +1374,7 @@ void SingleDraw::draw(const FretDiagram* item, Painter* painter, const PaintOpti
         }
 
         double x = ldata->stringDist * string - ldata->markerSize * .5;
-        double y = -ldata->fretDist - ldata->markerSize * .5;
+        double y = ldata->markerY;
         if (marker.mtype == FretMarkerType::CIRCLE) {
             painter->drawEllipse(RectF(x, y, ldata->markerSize, ldata->markerSize));
         } else if (marker.mtype == FretMarkerType::CROSS) {
@@ -1359,10 +1392,17 @@ void SingleDraw::draw(const FretDiagram* item, Painter* painter, const PaintOpti
         double x1    = ldata->stringDist * startString;
         double newX2 = endString == -1 ? x2 : ldata->stringDist * endString;
         double y     = ldata->fretDist * (fret - 1) + ldata->fretDist * .5;
-        pen.setWidthF(dotd * item->style().styleD(Sid::barreLineWidth));
-        pen.setCapStyle(PenCapStyle::RoundCap);
-        painter->setPen(pen);
-        painter->drawLine(LineF(x1, y, newX2, y));
+        if (item->style().styleB(Sid::barreAppearanceSlur)) {
+            painter->setBrush(item->curColor(opt));
+            painter->setPen(Pen(item->curColor(opt), 0.25 * ldata->stringLineWidth, PenStyle::SolidLine, PenCapStyle::RoundCap, PenJoinStyle::RoundJoin));
+            for (const PainterPath& path : ldata->slurPaths) {
+                // FIXME: both fill and stroke?
+                painter->drawPath(path);
+            }
+        } else {
+            painter->setPen(Pen(item->curColor(opt), dotd * item->style().styleD(Sid::barreLineWidth), PenStyle::SolidLine, PenCapStyle::RoundCap));
+            painter->drawLine(LineF(x1, y, newX2, y));
+        }
     }
 
     // Draw fret offset number
@@ -1370,19 +1410,22 @@ void SingleDraw::draw(const FretDiagram* item, Painter* painter, const PaintOpti
         Font scaledFont(item->fretNumFont());
         scaledFont.setPointSizeF(scaledFont.pointSizeF() * (item->spatium() / item->defaultSpatium()));
         painter->setFont(scaledFont);
-        String text = String::number(item->fretOffset() + 1);
+        String text = ldata->fretText;
+
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
 
         if (item->orientation() == Orientation::VERTICAL) {
             if (item->numPos() == 0) {
-                painter->drawText(RectF(-ldata->stringDist * .4, .0, .0, ldata->fretDist),
+                painter->drawText(RectF(-ldata->fretNumPadding, .0, .0, ldata->fretDist),
                                   muse::draw::AlignVCenter | muse::draw::AlignRight,
                                   muse::draw::TextDontClip,
                                   text);
             } else {
-                painter->drawText(RectF(x2 + (ldata->stringDist * .4), .0, .0, ldata->fretDist),
+                painter->drawText(RectF(x2 + ldata->fretNumPadding, .0, .0, ldata->fretDist),
                                   muse::draw::AlignVCenter | muse::draw::AlignLeft,
                                   muse::draw::TextDontClip,
-                                  String::number(item->fretOffset() + 1));
+                                  text);
             }
         } else if (item->orientation() == Orientation::HORIZONTAL) {
             painter->save();
@@ -1404,7 +1447,24 @@ void SingleDraw::draw(const FretDiagram* item, Painter* painter, const PaintOpti
         painter->setFont(item->fretNumFont());
     }
 
-    // NOTE:JT possible future todo - draw fingerings
+    for (const FretDiagram::FingeringItem& fingeringItem : item->ldata()->fingeringItems) {
+        painter->save();
+
+        Font scaledFont(item->fingeringFont());
+        scaledFont.setPointSizeF(scaledFont.pointSizeF() * (item->spatium() / item->defaultSpatium()));
+        painter->setFont(scaledFont);
+        if (item->orientation() == Orientation::HORIZONTAL) {
+            painter->translate(-translation);
+            painter->rotate(90);
+        }
+
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
+
+        painter->drawText(fingeringItem.pos, fingeringItem.fingerNumber);
+
+        painter->restore();
+    }
 
     if (item->orientation() == Orientation::HORIZONTAL) {
         painter->restore();
@@ -1488,6 +1548,7 @@ void SingleDraw::draw(const Stem* item, Painter* painter, const PaintOptions& op
     }
 
     const Stem::LayoutData* ldata = item->ldata();
+
     const Staff* staff = item->staff();
     const StaffType* staffType = staff ? staff->staffTypeForElement(item->chord()) : nullptr;
     const bool isTablature = staffType && staffType->isTabStaff();
@@ -1543,6 +1604,8 @@ void SingleDraw::draw(const Stem* item, Painter* painter, const PaintOptions& op
         double y     = ((score::StemLayout::STAFFTYPE_TAB_DEFAULTSTEMLEN_DN * 0.2) * sp) * (isUp ? -1.0 : 1.0);
         double step  = item->style().styleS(Sid::dotDotDistance).val() * sp;
         for (int dot = 0; dot < nDots; dot++, x += step) {
+            painter->setBrush(item->curColor(opt));
+            painter->setNoPen();
             item->drawSymbol(SymId::augmentationDot, painter, PointF(x, y));
         }
     }
@@ -1577,7 +1640,6 @@ void SingleDraw::drawTextBase(const TextBase* item, Painter* painter, const Pain
     painter->rotate(item->textAngle());
 
     const TextBase::LayoutData* ldata = item->ldata();
-
     if (item->hasFrame()) {
         double baseSpatium = DefaultStyle::baseStyle().value(Sid::spatium).toReal();
         if (!RealIsNull(item->frameWidth().val())) {
@@ -1598,8 +1660,8 @@ void SingleDraw::drawTextBase(const TextBase* item, Painter* painter, const Pain
             painter->drawRoundedRect(ldata->frame, frameRadius, frameRadius);
         }
     }
-    painter->setBrush(BrushStyle::NoBrush);
-    painter->setPen(item->textColor(opt));
+    painter->setBrush(item->textColor(opt));
+    painter->setNoPen();
     for (const TextBlock& t : ldata->blocks) {
         draw(t, item, painter);
     }
@@ -1708,7 +1770,7 @@ void SingleDraw::drawTextLineBaseSegment(const TextLineBaseSegment* item, Painte
         if (tl->beginHookType() == HookType::ARROW_FILLED) {
             Brush brush;
             brush.setStyle(BrushStyle::SolidPattern);
-            brush.setColor(item->curColor(opt));
+            brush.setColor(color);
             painter->setBrush(brush);
             painter->setNoPen();
             painter->drawPolygon(ldata->beginArrow);
@@ -1741,7 +1803,7 @@ void SingleDraw::drawTextLineBaseSegment(const TextLineBaseSegment* item, Painte
         if (tl->endHookType() == HookType::ARROW_FILLED) {
             Brush brush;
             brush.setStyle(BrushStyle::SolidPattern);
-            brush.setColor(item->curColor(opt));
+            brush.setColor(color);
             painter->setBrush(brush);
             painter->setNoPen();
             painter->drawPolygon(ldata->endArrow);
@@ -1861,12 +1923,11 @@ void SingleDraw::draw(const Harmony* item, Painter* painter, const PaintOptions&
             painter->drawRoundedRect(ldata->frame, frameRadius, frameRadius);
         }
     }
-    painter->setBrush(BrushStyle::NoBrush);
-    Color color = item->textColor(opt);
-    painter->setPen(color);
     for (const HarmonyRenderItem* renderItem : ldata->renderItemList()) {
         if (const TextSegment* ts = dynamic_cast<const TextSegment*>(renderItem)) {
             painter->setFont(ts->font());
+            painter->setBrush(item->textColor(opt));
+            painter->setNoPen();
             painter->drawText(ts->pos(), ts->text());
         }
     }
@@ -1875,7 +1936,8 @@ void SingleDraw::draw(const Harmony* item, Painter* painter, const PaintOptions&
 void SingleDraw::draw(const Hook* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
-    painter->setPen(item->curColor(opt));
+    painter->setBrush(item->curColor(opt));
+    painter->setNoPen();
     item->drawSymbol(item->sym(), painter);
 }
 
@@ -1939,10 +2001,8 @@ void SingleDraw::draw(const Jump* item, Painter* painter, const PaintOptions& op
 void SingleDraw::draw(const KeySig* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
-
     const KeySig::LayoutData* ldata = item->ldata();
 
-    painter->setPen(item->curColor(opt));
     double _spatium = item->spatium();
     double step = _spatium * 0.5;
     int lines = 5;
@@ -1951,6 +2011,8 @@ void SingleDraw::draw(const KeySig* item, Painter* painter, const PaintOptions& 
     for (const KeySym& ks : ldata->keySymbols) {
         double x = ks.xPos.toAbsolute(_spatium);
         double y = ks.line * step;
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         item->drawSymbol(ks.sym, painter, PointF(x, y));
         // ledger lines
         double _symWidth = item->symWidth(ks.sym);
@@ -1966,20 +2028,14 @@ void SingleDraw::draw(const KeySig* item, Painter* painter, const PaintOptions& 
             painter->drawLine(LineF(x1, y, x2, y));
         }
     }
-
-    if (!item->ownershipParent() && (item->isAtonal() || item->isCustom()) && ldata->keySymbols.empty()) {
-        // empty custom or atonal key signature - draw something for palette
-        painter->setPen(item->configuration()->scoreGreyColor());
-        item->drawSymbol(SymId::timeSigX, painter, PointF(item->symWidth(SymId::timeSigX) * -0.5, 2.0 * item->spatium()));
-    }
 }
 
 void SingleDraw::draw(const LayoutBreak* item, Painter* painter, const PaintOptions&)
 {
     TRACE_DRAW_ITEM;
 
-    Pen pen(item->configuration()->fontPrimaryColor());
-    painter->setPen(pen);
+    painter->setBrush(item->configuration()->fontPrimaryColor());
+    painter->setNoPen();
 
     painter->setFont(item->font());
 
@@ -2028,7 +2084,8 @@ void SingleDraw::draw(const MeasureRepeat* item, Painter* painter, const PaintOp
     TRACE_DRAW_ITEM;
 
     const MeasureRepeat::LayoutData* ldata = item->ldata();
-    painter->setPen(item->curColor(opt));
+    painter->setBrush(item->curColor(opt));
+    painter->setNoPen();
     item->drawSymbol(ldata->symId, painter);
 }
 
@@ -2087,8 +2144,14 @@ void SingleDraw::draw(const Rest* item, Painter* painter, const PaintOptions& op
         return;
     }
     const Rest::LayoutData* ldata = item->ldata();
-    painter->setPen(item->curColor(opt));
-    item->drawSymbol(ldata->sym, painter);
+
+    if (DeadSlapped* ds = item->deadSlapped()) {
+        draw(ds, painter, opt);
+    } else {
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
+        item->drawSymbol(ldata->sym, painter);
+    }
 }
 
 void SingleDraw::draw(const ShadowNote* item, Painter* painter, const PaintOptions&)
@@ -2102,8 +2165,6 @@ void SingleDraw::draw(const ShadowNote* item, Painter* painter, const PaintOptio
     PointF ap(item->pagePos());
     painter->translate(ap);
     double lw = item->style().styleAbsolute(Sid::stemWidth) * item->mag();
-    Pen pen(item->color(), lw, PenStyle::SolidLine, PenCapStyle::FlatCap);
-    painter->setPen(pen);
 
     bool up = item->computeUp();
 
@@ -2112,10 +2173,14 @@ void SingleDraw::draw(const ShadowNote* item, Painter* painter, const PaintOptio
     if (acc != SymId::noSym) {
         PointF posAcc;
         posAcc.rx() -= item->symWidth(acc) + item->style().styleAbsolute(Sid::accidentalNoteDistance) * item->mag();
+        painter->setBrush(item->color());
+        painter->setNoPen();
         item->drawSymbol(acc, painter, posAcc);
     }
 
     // Draw the notehead
+    painter->setBrush(item->color());
+    painter->setNoPen();
     item->drawSymbol(item->noteheadSymbol(), painter);
 
     // Draw the dots
@@ -2141,6 +2206,8 @@ void SingleDraw::draw(const ShadowNote* item, Painter* painter, const PaintOptio
 
         for (int i = 0; i < item->duration().dots(); i++) {
             posDot.rx() += dd * i;
+            painter->setBrush(item->color());
+            painter->setNoPen();
             item->drawSymbol(SymId::augmentationDot, painter, posDot);
             posDot.rx() -= dd * i;
         }
@@ -2148,15 +2215,19 @@ void SingleDraw::draw(const ShadowNote* item, Painter* painter, const PaintOptio
 
     // Draw stem and flag
     if (item->hasStem()) {
-        double x = up ? (noteheadWidth - (lw / 2)) : lw / 2;
+        double x = item->symSmuflAnchor(item->noteheadSymbol(), up ? SmuflAnchorId::stemUpSE : SmuflAnchorId::stemDownNW).x();
+        x += up ? -0.5 * lw : 0.5 * lw;
         double y1 = item->symSmuflAnchor(item->noteheadSymbol(), up ? SmuflAnchorId::stemUpSE : SmuflAnchorId::stemDownNW).y();
         double y2 = (up ? -3.5 : 3.5) * sp;
 
         if (item->hasFlag()) {
             SymId flag = item->flagSym();
+            painter->setBrush(item->color());
+            painter->setNoPen();
             item->drawSymbol(flag, painter, PointF(x - (lw / 2), y2));
             y2 += item->symSmuflAnchor(flag, up ? SmuflAnchorId::stemUpNW : SmuflAnchorId::stemDownSW).y();
         }
+        painter->setPen(Pen(item->color(), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
         painter->drawLine(LineF(x, y1, x, y2));
     }
 
@@ -2169,8 +2240,7 @@ void SingleDraw::draw(const ShadowNote* item, Painter* painter, const PaintOptio
         double step = sp2 * item->staffType()->lineDistance().val();
 
         lw = item->style().styleAbsolute(Sid::ledgerLineWidth) * item->mag();
-        pen.setWidthF(lw);
-        painter->setPen(pen);
+        painter->setPen(Pen(item->color(), lw, PenStyle::SolidLine, PenCapStyle::FlatCap));
 
         const int topLine = -2 + yOffset / step;
         for (int i = topLine; i >= item->lineIndex(); i -= 2) {
@@ -2193,6 +2263,9 @@ void SingleDraw::draw(const SlurSegment* item, Painter* painter, const PaintOpti
 {
     TRACE_DRAW_ITEM;
 
+    painter->save();
+    setMask(item, painter);
+
     Pen pen(item->curColor(opt));
     double mag = item->staff() ? item->staff()->staffMag(item->slur()->tick()) : 1.0;
 
@@ -2206,29 +2279,31 @@ void SingleDraw::draw(const SlurSegment* item, Painter* painter, const PaintOpti
         painter->setBrush(Brush(pen.color()));
         pen.setCapStyle(PenCapStyle::RoundCap);
         pen.setJoinStyle(PenJoinStyle::RoundJoin);
-        pen.setWidthF(item->style().styleAbsolute(Sid::slurEndWidth) * mag);
+        pen.setWidthF(item->endWidth() * mag);
         break;
     case SlurStyleType::Dotted:
         painter->setBrush(BrushStyle::NoBrush);
         pen.setCapStyle(PenCapStyle::RoundCap);           // round dots
         pen.setDashPattern(dotted);
-        pen.setWidthF(item->style().styleAbsolute(Sid::slurDottedWidth) * mag);
+        pen.setWidthF(item->dottedWidth() * mag);
         break;
     case SlurStyleType::Dashed:
         painter->setBrush(BrushStyle::NoBrush);
         pen.setDashPattern(dashed);
-        pen.setWidthF(item->style().styleAbsolute(Sid::slurDottedWidth) * mag);
+        pen.setWidthF(item->dottedWidth() * mag);
         break;
     case SlurStyleType::WideDashed:
         painter->setBrush(BrushStyle::NoBrush);
         pen.setDashPattern(wideDashed);
-        pen.setWidthF(item->style().styleAbsolute(Sid::slurDottedWidth) * mag);
+        pen.setWidthF(item->dottedWidth() * mag);
         break;
     case SlurStyleType::Undefined:
         break;
     }
     painter->setPen(pen);
     painter->drawPath(item->ldata()->path());
+
+    painter->restore();
 }
 
 void SingleDraw::draw(const Spacer* item, Painter* painter, const PaintOptions&)
@@ -2247,8 +2322,14 @@ void SingleDraw::draw(const Spacer* item, Painter* painter, const PaintOptions&)
 void SingleDraw::draw(const StaffLines* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
+    painter->save();
+
+    setMask(item, painter);
+
     painter->setPen(Pen(item->curColor(opt), item->lw(), PenStyle::SolidLine, PenCapStyle::FlatCap));
     painter->drawLines(item->lines());
+
+    painter->restore();
 }
 
 void SingleDraw::draw(const StaffState* item, Painter* painter, const PaintOptions&)
@@ -2302,7 +2383,9 @@ void SingleDraw::draw(const StaffTypeChange* item, Painter* painter, const Paint
     // draw icon contents
     int lines = 5;
     if (item->staffType()) {
-        if (item->staffType()->stemless()) {       // a single notehead represents a stemless staff
+        if (item->staffType()->stemless()) {
+            painter->setBrush(item->selected() ? conf->selectionColor() : conf->formattingColor());
+            painter->setNoPen();   // a single notehead represents a stemless staff
             item->drawSymbol(SymId::noteheadBlack, painter, PointF(w * 0.5 - 0.33 * _spatium, h * 0.5), 0.5);
         }
         if (item->staffType()->invisible()) {      // no lines needed. It's done.
@@ -2324,10 +2407,13 @@ void SingleDraw::draw(const StaffTypeChange* item, Painter* painter, const Paint
 void SingleDraw::draw(const Symbol* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
-    if (!item->isNoteDot() || !item->staff()->isTabStaff(item->tick())) {
-        painter->setPen(item->curColor(opt));
+    bool tabStaff = item->staff() && item->staff()->isTabStaff(item->tick());
+
+    if (!item->isNoteDot() || !tabStaff) {
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         if (item->scoreFont()) {
-            item->scoreFont()->draw(item->sym(), painter, item->magS(), PointF());
+            item->scoreFont()->draw(item->sym(), painter, item->magS() * item->symbolsSize(), PointF(), item->symAngle());
         } else {
             item->drawSymbol(item->sym(), painter);
         }
@@ -2339,7 +2425,8 @@ void SingleDraw::draw(const FSymbol* item, Painter* painter, const PaintOptions&
     TRACE_DRAW_ITEM;
 
     painter->setFont(item->font());
-    painter->setPen(item->curColor(opt));
+    painter->setBrush(item->curColor(opt));
+    painter->setNoPen();
     painter->drawText(PointF(0, 0), item->toString());
 }
 
@@ -2354,11 +2441,21 @@ void SingleDraw::draw(const SystemText* item, Painter* painter, const PaintOptio
     drawTextBase(item, painter, opt);
 }
 
-void SingleDraw::draw(const SoundFlag* item, Painter* painter, const PaintOptions&)
+void SingleDraw::draw(const SoundFlag* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
 
+    if (item->shouldHide()) {
+        return;
+    }
+
+    painter->setNoPen();
+    painter->setBrush(item->iconBackgroundColor());
+    painter->drawEllipse(item->ldata()->bbox().adjusted(-4.0, -4.0, 4.0, 4.0));
+
     painter->setFont(item->iconFont());
+    painter->setBrush(item->selected() ? item->curColor(true, opt) : Color::WHITE);
+    painter->setNoPen();
     painter->drawText(item->ldata()->bbox(), muse::draw::AlignCenter, muse::draw::TextDontClip, Char(item->iconCode()));
 }
 
@@ -2394,9 +2491,14 @@ void SingleDraw::draw(const TieSegment* item, Painter* painter, const PaintOptio
         return;
     }
 
-    Pen pen(item->curColor(opt));
-    double mag = item->staff() ? item->staff()->staffMag(item->tie()->tick()) : 1.0;
+    painter->save();
 
+    setMask(item, painter);
+
+    Color penColor = item->curColor(opt);
+
+    Pen pen(penColor);
+    double mag = item->staff() ? item->staff()->staffMag(item->tie()->tick()) : 1.0;
     //Replace generic Qt dash patterns with improved equivalents to show true dots (keep in sync with slur.cpp)
     std::vector<double> dotted     = { 0.01, 1.99 };   // tighter than Qt PenStyle::DotLine equivalent - would be { 0.01, 2.99 }
     std::vector<double> dashed     = { 3.00, 3.00 };   // Compensating for caps. Qt default PenStyle::DashLine is { 4.0, 2.0 }
@@ -2430,6 +2532,8 @@ void SingleDraw::draw(const TieSegment* item, Painter* painter, const PaintOptio
     }
     painter->setPen(pen);
     painter->drawPath(item->ldata()->path());
+
+    painter->restore();
 }
 
 void SingleDraw::draw(const TimeSig* item, Painter* painter, const PaintOptions& opt)
@@ -2439,7 +2543,11 @@ void SingleDraw::draw(const TimeSig* item, Painter* painter, const PaintOptions&
     if (item->staff() && !const_cast<const Staff*>(item->staff())->staffType(item->tick())->genTimesig()) {
         return;
     }
-    painter->setPen(item->curColor(opt));
+    if (!item->showOnThisStaff()) {
+        return;
+    }
+    painter->setBrush(item->curColor(opt));
+    painter->setNoPen();
 
     const TimeSig::LayoutData* ldata = item->ldata();
 
@@ -2459,10 +2567,11 @@ void SingleDraw::draw(const TremoloSingleChord* item, Painter* painter, const Pa
     const TremoloSingleChord::LayoutData* ldata = item->ldata();
 
     if (item->isBuzzRoll()) {
-        painter->setPen(item->curColor(opt));
+        painter->setBrush(item->curColor(opt));
+        painter->setNoPen();
         item->drawSymbol(SymId::buzzRoll, painter);
     } else {
-        painter->setBrush(Brush(item->curColor(opt)));
+        painter->setBrush(item->curColor(opt));
         painter->setNoPen();
         painter->drawPath(item->path());
     }
@@ -2503,7 +2612,8 @@ void SingleDraw::draw(const TremoloBar* item, Painter* painter, const PaintOptio
 void SingleDraw::draw(const TrillSegment* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
-    painter->setPen(item->spanner()->curColor(opt));
+    painter->setBrush(item->spanner()->curColor(opt));
+    painter->setNoPen();
     item->drawSymbols(item->symbols(), painter);
 }
 
@@ -2532,7 +2642,10 @@ void SingleDraw::draw(const Tuplet* item, Painter* painter, const PaintOptions& 
         painter->translate(-pos);
     }
     if (item->hasBracket()) {
-        painter->setPen(Pen(color, item->absoluteFromSpatium(item->bracketWidth()) * item->mag()));
+        Pen pen(color, item->absoluteFromSpatium(item->bracketWidth()));
+        pen.setJoinStyle(PenJoinStyle::MiterJoin);
+        pen.setCapStyle(PenCapStyle::FlatCap);
+        painter->setPen(pen);
         if (!item->number()) {
             painter->drawPolyline(item->bracketL, 4);
         } else {
@@ -2545,7 +2658,8 @@ void SingleDraw::draw(const Tuplet* item, Painter* painter, const PaintOptions& 
 void SingleDraw::draw(const VibratoSegment* item, Painter* painter, const PaintOptions& opt)
 {
     TRACE_DRAW_ITEM;
-    painter->setPen(item->spanner()->curColor(opt));
+    painter->setBrush(item->spanner()->curColor(opt));
+    painter->setNoPen();
     item->drawSymbols(item->symbols(), painter);
 }
 

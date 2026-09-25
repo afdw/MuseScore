@@ -174,7 +174,8 @@ void NotationRuler::paintLine(Painter* painter, LineType type, const PointF& poi
         Font font(uiConfiguration()->iconsFontFamily(), Font::Type::Icon);
         font.setPointSizeF(spatium / 6.);
 
-        painter->setPen(color);
+        painter->setBrush(color);
+        painter->setNoPen();
         painter->setFont(font);
         painter->drawText(rect, AlignHCenter | AlignBottom, TextDontClip,
                           Char(static_cast<char16_t>(muse::ui::IconCode::Code::DURATION_CURSOR)));

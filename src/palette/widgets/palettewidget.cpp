@@ -616,20 +616,6 @@ QPixmap PaletteWidget::pixmapForCellAt(int paletteIdx) const
     PointF pos = element->ldata()->pos();
     element->setPos(0, 0);
 
-    QColor color;
-    // show voice colors for notes
-    if (element->isChord()) {
-        const Chord* chord = toChord(element.get());
-        for (Note* note : chord->notes()) {
-            note->setSelected(true);
-        }
-        color = element->curColor({}).toQColor();
-    } else {
-        color = palette().color(QPalette::Normal, QPalette::Text);
-    }
-
-    painter.setPen(Pen(color));
-
     notation::EngravingItemPreviewPainter::PaintParams params;
     params.painter = &painter;
     params.color = configuration()->elementsColor();
@@ -1041,7 +1027,8 @@ void PaletteWidget::paintEvent(QPaintEvent* /*event*/)
 
         QString tag = currentCell->tag;
         if (!tag.isEmpty()) {
-            painter.setPen(QColor(Qt::darkGray));
+            painter.setBrush(QColor(Qt::darkGray));
+            painter.setNoPen();
             Font font(painter.font());
             font.setPixelSize(uiConfiguration()->fontSize(muse::ui::FontSizeType::BODY));
             painter.setFont(font);
@@ -1097,20 +1084,6 @@ void PaletteWidget::paintEvent(QPaintEvent* /*event*/)
         sy += yOffset() * _spatium;
 
         painter.translate(sx, sy);
-
-        QColor color;
-        if (idx != m_selectedIdx) {
-            // show voice colors for notes
-            if (el->isChord()) {
-                color = el->curColor({}).toQColor();
-            } else {
-                color = palette().color(QPalette::Normal, QPalette::Text);
-            }
-        } else {
-            color = palette().color(QPalette::Normal, QPalette::HighlightedText);
-        }
-
-        painter.setPen(Pen(color));
 
         notation::EngravingItemPreviewPainter::PaintParams params;
         params.painter = &painter;

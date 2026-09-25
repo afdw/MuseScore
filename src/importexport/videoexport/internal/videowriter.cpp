@@ -521,7 +521,8 @@ bool VideoWriter::generateLeadingFrames(muse::media::IVideoEncoderPtr encoder, I
         m_progress.progress(f, totalFrameCount);
 
         painter.fillRect(frameRect, Color::BLACK);
-        painter.setPen(Color::WHITE);
+        painter.setBrush(Color::WHITE);
+        painter.setNoPen();
         painter.setFont(titleFont);
         painter.drawText(titleRect, AlignCenter, TextWordWrap, title);
 

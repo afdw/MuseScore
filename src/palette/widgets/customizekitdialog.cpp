@@ -136,8 +136,8 @@ struct SymbolIcon {
         const qreal& yStShift = (h - mag * bbox.height()) / 2 - mag * bbox.top();
         const muse::PointF& stPtPos = muse::PointF(xStShift, yStShift);
 
-        painter.setPen(Color(CustomizeKitDialog::uiConfiguration()->currentTheme().values[muse::ui::FONT_PRIMARY_COLOR].toString()));
-        painter.setBrush(Color::transparent);
+        painter.setBrush(Color(CustomizeKitDialog::uiConfiguration()->currentTheme().values[muse::ui::FONT_PRIMARY_COLOR].toString()));
+        painter.setNoPen();
 
         CustomizeKitDialog::engravingFonts()->fallbackFont()->draw(id, &painter, mag, stPtPos);
 

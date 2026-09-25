@@ -105,8 +105,7 @@ static void drawInputStringMarks(const StaffType& staffType, muse::draw::Painter
     const String text = staffType.tabBassStringPrefix(string, &hasFret);
 
     const double lw = LEDGER_LINE_THICKNESS * spatium; // use a fixed width
-    const muse::draw::Pen pen(color, lw);
-    p->setPen(pen);
+    p->setPen(muse::draw::Pen(color, lw));
 
     // draw conventional 'ledger lines', if required
     const int numOfLedgerLines = staffType.numOfTabLedgerLines(string);
@@ -125,6 +124,8 @@ static void drawInputStringMarks(const StaffType& staffType, muse::draw::Painter
     // draw the text, if any
     if (!text.isEmpty()) {
         p->setFont(staffType.fretFont());
+        p->setBrush(color);
+        p->setNoPen();
         p->drawText(PointF(rect.left(), rect.top() + lineDist), text);
     }
 }
